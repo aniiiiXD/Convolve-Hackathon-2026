@@ -11,7 +11,13 @@ class Settings(BaseSettings):
 
 # Attempt to load from parent dir if locally not found (Hackathon convenience)
 import os
-if not os.path.exists(".env") and os.path.exists("../.env"):
-    Settings.Config.env_file = "../.env"
+from dotenv import load_dotenv
+
+# Try loading from local .env
+if os.path.exists(".env"):
+    load_dotenv(".env")
+# Try loading from parent .env
+elif os.path.exists("../.env"):
+    load_dotenv("../.env")
 
 settings = Settings()

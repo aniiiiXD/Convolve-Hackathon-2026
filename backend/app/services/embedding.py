@@ -23,11 +23,11 @@ except ImportError:
                 IMAGE_EMBEDDING_AVAILABLE = False
                 print("Warning: ImageEmbedding not available. Install fastembed[image].")
 
-# Dense Text Model: BAAI/bge-small-en-v1.5 (Standard FastEmbed model)
-dense_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+# Dense Text Model: BAAI/bge-base-en (768 dims, matches collection)
+dense_model = TextEmbedding(model_name="BAAI/bge-base-en")
 
-# Sparse Model: prithivida/splade-cocktail (FastEmbed supported)
-sparse_model = SparseTextEmbedding(model_name="prithivida/splade-cocktail")
+# Sparse Model: prithivida/Splade_PP_en_v1 (FastEmbed supported)
+sparse_model = SparseTextEmbedding(model_name="prithivida/Splade_PP_en_v1")
 
 # Image Model: CLIP (Using fastembed's clip-vit-b-32)
 if IMAGE_EMBEDDING_AVAILABLE:
