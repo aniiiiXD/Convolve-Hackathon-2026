@@ -6,7 +6,7 @@ import time
 
 console = Console()
 
-def run_tests():
+def run_tests(): 
     console.rule("[bold magenta]MediSync Multimodal Stress Test")
     
     # 1. Setup

@@ -14,7 +14,7 @@ def test_ingest():
     if response.status_code == 200:
         print("Success:", response.json())
         return True
-    else:
+    else: 
         print("Failed:", response.text)
         return False
 
