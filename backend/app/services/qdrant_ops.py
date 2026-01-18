@@ -31,5 +31,14 @@ def initialize_collections():
     else:
         print(f"Collection '{COLLECTION_NAME}' already exists.")
 
+    # Ensure payload index for multitenancy (clinic_id)
+    # This is required for efficient filtering
+    client.create_payload_index(
+        collection_name=COLLECTION_NAME,
+        field_name="clinic_id",
+        field_schema=models.PayloadSchemaType.KEYWORD
+    )
+    print(f"Payload index for 'clinic_id' ensured.")
+
 def get_collection_info():
     return client.get_collection(COLLECTION_NAME)
