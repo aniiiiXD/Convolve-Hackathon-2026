@@ -116,21 +116,60 @@ class ClinicalAgent:
         )
         return results.points
 
-    def reason(self, query: str, context_points) -> str:
+    def process_request(self, user_input: str):
         """
-        'Reasoning' phase: Synthesize an answer.
-        (MOCKED for Hackathon Speed - Placeholder for LLM)
+        Simulates a ReAct (Reason + Act) loop.
+        Yields tuples of (step_type, message) to visualizer the agent's brain.
+        step_types: 'THOUGHT', 'ACTION', 'SYSTEM', 'ANSWER'
         """
-        context_text = "\n".join([f"- {p.payload['text_content']}" for p in context_points])
+        user_input_lower = user_input.lower()
         
-        # Mock Reasoning Logic
-        return f"""
-Based on the clinical history I've retrieved:
+        # 1. PERCEPTION & INTENT CLASSIFICATION
+        yield ("THOUGHT", f"Analyzing input: '{user_input}'...")
+        time.sleep(0.5) # Fake "processing" latency for dramatic effect
 
-{context_text}
+        intent = "unknown"
+        if any(w in user_input_lower for w in ["add", "save", "note", "record", "remember", "ingest"]):
+            intent = "ingest"
+        elif any(w in user_input_lower for w in ["search", "find", "query", "what", "show", "recall", "history"]):
+            intent = "recall"
+        
+        # 2. DECISION
+        if intent == "ingest":
+            yield ("THOUGHT", "Detected intent: [bold green]MEMORY INGESTION[/bold green]. Extracting entities...")
+            
+            # Simple heuristic extraction of patient ID
+            import re
+            pid_match = re.search(r'(P-\d+|patient \w+)', user_input, re.IGNORECASE)
+            patient_id = pid_match.group(0) if pid_match else "P-Unknown"
+            
+            yield ("THOUGHT", f"Target Patient: {patient_id}. Strategy: Create dense + sparse embeddings.")
+            yield ("ACTION", f"Calling [bold cyan]ingest_note(patient_id='{patient_id}')[/bold cyan]...")
+            
+            # Action
+            point_id = self.ingest_note(patient_id, user_input)
+            
+            yield ("SYSTEM", f"✓ Saved content to Vector DB (ID: {point_id})")
+            yield ("ANSWER", f"I have successfully memorized that note for **{patient_id}**.")
 
-**Assessment:**
-The patient seems to be exhibiting symptoms consistent with the query '{query}'. 
-Recommended proceeding with standard diagnostic protocols.
-(Note: This is an AI-generated synthesis).
-"""
+        elif intent == "recall":
+            yield ("THOUGHT", "Detected intent: [bold magenta]KNOWLEDGE RETRIEVAL[/bold magenta].")
+            yield ("THOUGHT", "Formulating Hybrid Search query (Dense + SPLADE)...")
+            yield ("ACTION", f"Calling [bold cyan]recall('{user_input}')[/bold cyan]...")
+
+            # Action
+            results = self.recall(user_input, limit=3)
+            
+            yield ("SYSTEM", f"✓ Found {len(results)} relevant memories.")
+            
+            # Synthesis
+            if results:
+                summary = "\n".join([f"- {p.payload.get('text_content', 'Image')}" for p in results])
+                yield ("ANSWER", f"Here is what I found:\n{summary}")
+            else:
+                yield ("ANSWER", "I searched my memory banks but found no matching records.")
+
+        else:
+            yield ("THOUGHT", "Intent unclear. Defaulting to general reasoning/chat.")
+            yield ("ANSWER", "I'm listening. You can ask me to 'add a note' or 'search for a patient'.")
+
