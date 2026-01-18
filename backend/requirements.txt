@@ -1,7 +1,0 @@
-fastapi
-uvicorn
-qdrant-client[fastembed]
-python-dotenv
-pydantic
-pydantic-settings
-rich
