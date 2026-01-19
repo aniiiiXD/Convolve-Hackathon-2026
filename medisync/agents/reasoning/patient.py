@@ -98,8 +98,9 @@ class PatientAgent(MediSyncAgent):
             yield ("ACTION", "Fetching your history...")
             points = self.get_my_history()
             if points:
-                summary = "\n".join([f"- {p.payload.get('text_content')}" for p in points])
-                yield ("ANSWER", f"Your recent entries:\n{summary}")
+                yield ("RESULTS", points)
+                # summary = "\n".join([f"- {p.payload.get('text_content')}" for p in points])
+                # yield ("ANSWER", f"Your recent entries:\n{summary}")
             else:
                 yield ("ANSWER", "Your diary is empty.")
                 
@@ -108,8 +109,9 @@ class PatientAgent(MediSyncAgent):
              results = self.get_health_insights()
              if results:
                  # In a real app, we would summarize these. For now, list them.
-                 summary = "\n".join([f"- Similar Case: {p.payload.get('text_content')}" for p in results])
-                 yield ("ANSWER", f"Based on your symptoms, I found these similar patterns in our database:\n{summary}")
+                 yield ("RESULTS", results)
+                 # summary = "\n".join([f"- Similar Case: {p.payload.get('text_content')}" for p in results])
+                 # yield ("ANSWER", f"Based on your symptoms, I found these similar patterns in our database:\n{summary}")
              else:
                  yield ("ANSWER", "No specific insights found yet. Keep logging symptoms!")
                  

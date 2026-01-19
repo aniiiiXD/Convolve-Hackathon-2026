@@ -13,3 +13,7 @@ class User(Base):
     password_hash = Column(String, nullable=True) # For real app, use bcrypt
     
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    @property
+    def user_id(self):
+        return self.username

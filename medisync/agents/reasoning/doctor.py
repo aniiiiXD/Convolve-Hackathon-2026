@@ -36,8 +36,8 @@ class DoctorAgent(MediSyncAgent):
                     vector={
                         "dense_text": dense_vec,
                         "sparse_code": models.SparseVector(
-                            indices=sparse_vec["indices"], 
-                            values=sparse_vec["values"]
+                            indices=sparse_vec.indices, 
+                            values=sparse_vec.values
                         )
                     },
                     payload=payload
@@ -59,7 +59,7 @@ class DoctorAgent(MediSyncAgent):
                     filter=models.Filter(must=[models.FieldCondition(key="clinic_id", match=models.MatchValue(value=self.clinic_id))])
                 ),
                 models.Prefetch(
-                    query=models.SparseVector(indices=sparse_q["indices"], values=sparse_q["values"]),
+                    query=models.SparseVector(indices=sparse_q.indices, values=sparse_q.values),
                     using="sparse_code", limit=limit*2,
                     filter=models.Filter(must=[models.FieldCondition(key="clinic_id", match=models.MatchValue(value=self.clinic_id))])
                 ),
@@ -116,14 +116,16 @@ class DoctorAgent(MediSyncAgent):
             # Mocking context parsing
             results = self.discover_cases(target, [context_part], [])
             
-            summary = "\n".join([f"- {p.payload.get('text_content')}" for p in results])
-            yield ("ANSWER", f"Discovery Results:\n{summary}")
+            yield ("RESULTS", results)
+            # summary = "\n".join([f"- {p.payload.get('text_content')}" for p in results])
+            # yield ("ANSWER", f"Discovery Results:\n{summary}")
 
         elif intent == "search":
             yield ("ACTION", f"Searching clinic records...")
             results = self.search_clinic(user_input)
-            summary = "\n".join([f"- {p.payload.get('text_content')}" for p in results])
-            yield ("ANSWER", f"Found:\n{summary}")
+            yield ("RESULTS", results)
+            # summary = "\n".join([f"- {p.payload.get('text_content')}" for p in results])
+            # yield ("ANSWER", f"Found:\n{summary}")
         
         else:
             yield ("ANSWER", "I can help you 'add a note', 'search', or 'discover' cases.")

@@ -16,6 +16,7 @@ class MediSyncAgent:
              "role": user.role,
              "clinic_id": user.clinic_id
         }
+        self.clinic_id = user.clinic_id
         print(f"[Agent] Initialized for User: {user.username} (Role: {user.role})")
         
     def run(self, input_text: str):
