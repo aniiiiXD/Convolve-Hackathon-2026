@@ -6,7 +6,7 @@ from typing import Optional
 # Ensure tables exist
 init_db()
 
-class AuthService:
+class AuthService: 
     
     @staticmethod
     def login(username: str) -> Optional[User]:

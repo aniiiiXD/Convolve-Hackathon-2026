@@ -8,7 +8,7 @@ from rich.markdown import Markdown
 from datetime import datetime
 import time
 
-console = Console()
+console = Console()   
 
 def main():
     console.clear()
