@@ -32,7 +32,7 @@ run_intensive_test() {
     echo -e "${CYAN}Running Intensive Conversation Test...${NC}"
     echo ""
     cd "$PROJECT_ROOT"
-    python -m medisync.tests.test_intensive_conversation
+    python3 -m medisync.tests.test_intensive_conversation
     TEST_EXIT_CODE=$?
 
     if [ $TEST_EXIT_CODE -eq 0 ]; then
@@ -55,7 +55,7 @@ check_dependencies() {
     echo -e "  Python version: ${GREEN}$PYTHON_VERSION${NC}"
 
     # Check for required packages
-    python -c "import medisync" 2>/dev/null
+    python3 -c "import medisync" 2>/dev/null
     if [ $? -eq 0 ]; then
         echo -e "  MediSync package: ${GREEN}✓ Found${NC}"
     else
@@ -63,7 +63,7 @@ check_dependencies() {
         return 1
     fi
 
-    python -c "import qdrant_client" 2>/dev/null
+    python3 -c "import qdrant_client" 2>/dev/null
     if [ $? -eq 0 ]; then
         echo -e "  Qdrant client: ${GREEN}✓ Found${NC}"
     else
@@ -71,7 +71,7 @@ check_dependencies() {
         return 1
     fi
 
-    python -c "import rich" 2>/dev/null
+    python3 -c "import rich" 2>/dev/null
     if [ $? -eq 0 ]; then
         echo -e "  Rich library: ${GREEN}✓ Found${NC}"
     else
