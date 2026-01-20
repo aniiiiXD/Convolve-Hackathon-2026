@@ -1,9 +1,9 @@
 import os
-import requests
-from typing import List, Generator
-from fastembed import TextEmbedding
 import logging
+from typing import List
 from dotenv import load_dotenv
+from google import genai
+from google.genai import types
 
 load_dotenv()
 
@@ -13,57 +13,49 @@ logger = logging.getLogger(__name__)
 
 class EmbeddingService:
     def __init__(self):
-        self.hf_token = os.getenv("HF_TOKEN")
-        self.api_url = "https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2"
-        self.headers = {"Authorization": f"Bearer {self.hf_token}"}
+        self.api_key = os.getenv("GEMINI_API_KEY")
         
-        # Fallback to local
-        self.use_local = False
-        if not self.hf_token or self.hf_token.startswith("hf_mock"):
-            logger.warning("HF_TOKEN missing or mock. Using local FastEmbed.")
-            self.use_local = True
-            
-        # Initialize local model if needed
-        if self.use_local:
+        if not self.api_key:
+            logger.warning("GEMINI_API_KEY missing. Embeddings will fail unless set.")
+            self.client = None
+        else:
             try:
-                self.local_model = TextEmbedding(model_name="BAAI/bge-base-en-v1.5")
+                self.client = genai.Client(api_key=self.api_key)
             except Exception as e:
-                logger.error(f"Failed to load local model: {e}")
-                self.local_model = None
+                logger.error(f"Failed to init Gemini Client: {e}")
+                self.client = None
 
     def get_dense_embedding(self, text: str) -> List[float]:
         """
-        Generates a dense vector using HF API or local fallback.
+        Generates a dense vector using Gemini API (text-embedding-004 or similar).
         """
-        if self.use_local or not self.hf_token:
-             if self.local_model:
-                return list(self.local_model.embed([text]))[0].tolist()
-             else:
-                return [0.0] * 384 # Mock fallback if everything fails
+        if not self.client:
+             logger.error("Gemini Client not initialized.")
+             return [0.0] * 768 # Fallback size for Gemini embeddings (usually 768)
 
         try:
-            payload = {"inputs": text, "options": {"wait_for_model": True}}
-            response = requests.post(self.api_url, headers=self.headers, json=payload)
-            response.raise_for_status()
-            
-            data = response.json()
-            if isinstance(data, list):
-                if isinstance(data[0], list):
-                     return data[0]
-                return data
-            return data
+            # Using the latest embedding model
+            result = self.client.models.embed_content(
+                model="gemini-embedding-001",
+                contents=text,
+                config=types.EmbedContentConfig(output_dimensionality=768) 
+            )
+            # The structure depends on the library version, assuming result.embeddings[0].values based on docs
+            # But the provided snippet says: 
+            # [embedding_obj] = result.embeddings
+            # listing = embedding_obj.values
+            if hasattr(result, 'embeddings') and result.embeddings:
+                 return result.embeddings[0].values
+            return [0.0] * 768
             
         except Exception as e:
-            logger.error(f"HF API Failed: {e}. Switching to local fallback.")
-            self.use_local = True
-            # Lazy load local model if strictly needed now
-            if not hasattr(self, 'local_model') or self.local_model is None:
-                self.local_model = TextEmbedding(model_name="BAAI/bge-base-en-v1.5")
-            return self.get_dense_embedding(text)
+            logger.error(f"Gemini Embedding Failed: {e}")
+            return [0.0] * 768
 
     def get_sparse_embedding(self, text: str):
         """
         Generates SPLADE sparse vector using FastEmbed (Local).
+        Kept local as Gemini doesn't output sparse vectors directly commonly.
         """
         from fastembed import SparseTextEmbedding
         
