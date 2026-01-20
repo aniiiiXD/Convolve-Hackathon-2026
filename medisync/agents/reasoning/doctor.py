@@ -3,15 +3,25 @@ from medisync.services.auth import User
 from medisync.services.embedding import EmbeddingService
 from medisync.services.qdrant_ops import COLLECTION_NAME, client
 from medisync.services.discovery import DiscoveryService
+from medisync.services.feedback_middleware import FeedbackMiddleware
+from medisync.services.global_insights import GlobalInsightsService
+from medisync.models.reranker import get_reranker
 from qdrant_client import models
 import uuid
 import time
 import re
+import os
 
 class DoctorAgent(MediSyncAgent):
     def __init__(self, user: User):
         super().__init__(user)
         self.embedder = EmbeddingService()
+        self.feedback_middleware = FeedbackMiddleware(
+            enabled=os.getenv("FEEDBACK_ENABLED", "true").lower() == "true"
+        )
+        self.global_insights = GlobalInsightsService()
+        self.use_reranker = os.getenv("USE_RERANKER", "false").lower() == "true"
+        self.reranker = get_reranker() if self.use_reranker else None
 
     def ingest_note(self, patient_id: str, text: str) -> str:
         """Encodes and stores a clinical observation."""
@@ -47,27 +57,72 @@ class DoctorAgent(MediSyncAgent):
         return point_id
 
     def search_clinic(self, query: str, limit: int = 5):
-        """Hybrid Search across the entire clinic."""
+        """Hybrid Search across the entire clinic with optional re-ranking and feedback tracking."""
         dense_q = self.embedder.get_dense_embedding(query)
         sparse_q = self.embedder.get_sparse_embedding(query)
+
+        # Stage 1: Fast retrieval (get more candidates if re-ranking is enabled)
+        retrieval_limit = limit * 10 if self.use_reranker and self.reranker and self.reranker.is_available() else limit
 
         results = client.query_points(
             collection_name=COLLECTION_NAME,
             prefetch=[
                 models.Prefetch(
-                    query=dense_q, using="dense_text", limit=limit*2,
+                    query=dense_q, using="dense_text", limit=retrieval_limit*2,
                     filter=models.Filter(must=[models.FieldCondition(key="clinic_id", match=models.MatchValue(value=self.clinic_id))])
                 ),
                 models.Prefetch(
                     query=models.SparseVector(indices=sparse_q.indices, values=sparse_q.values),
-                    using="sparse_code", limit=limit*2,
+                    using="sparse_code", limit=retrieval_limit*2,
                     filter=models.Filter(must=[models.FieldCondition(key="clinic_id", match=models.MatchValue(value=self.clinic_id))])
                 ),
             ],
             query=models.FusionQuery(fusion=models.Fusion.RRF),
-            limit=limit
+            limit=retrieval_limit
         )
-        return results.points
+
+        candidates = results.points
+
+        # Stage 2: Re-ranking (if enabled)
+        if self.use_reranker and self.reranker and self.reranker.is_available() and len(candidates) > limit:
+            candidates = self.reranker.rerank(
+                query=query,
+                candidates=candidates,
+                top_k=limit
+            )
+        else:
+            candidates = candidates[:limit]
+
+        # Track query with feedback middleware
+        if self.feedback_middleware.enabled:
+            try:
+                from medisync.services.feedback_service import FeedbackService
+
+                # Infer intent
+                intent = self.feedback_middleware._infer_intent(query)
+
+                # Record query
+                query_id = FeedbackService.record_query(
+                    user_id=self.user.id,
+                    clinic_id=self.clinic_id,
+                    query_text=query,
+                    query_type="hybrid_reranked" if self.use_reranker else "hybrid",
+                    query_intent=intent,
+                    result_count=len(candidates),
+                    session_id=self.feedback_middleware.session_id
+                )
+
+                self.feedback_middleware.current_query_id = query_id
+                self.feedback_middleware.query_start_time = time.time()
+
+                # Track result views automatically
+                self.feedback_middleware.track_result_views(candidates, auto_log=True)
+
+            except Exception as e:
+                import logging
+                logging.error(f"Error tracking search feedback: {e}")
+
+        return candidates
 
     def discover_cases(self, target: str, context_positive: list[str], context_negative: list[str]):
         """Use Discovery API to find nuanced cases."""
@@ -86,9 +141,70 @@ class DoctorAgent(MediSyncAgent):
         # We reuse search_clinic but conceptually this is for "recommendations"
         # In a real system, this might query a separate 'medical_knowledge' collection
         # or use Qdrant's 'recommend' API if we had a vector for the symptoms.
-        
+
         # Here we do a focused search on the clinic's data to find precedents.
         return self.search_clinic(symptoms_text, limit=limit)
+
+    def query_global_insights(self, query: str, limit: int = 5):
+        """
+        Query anonymized global medical insights for treatment decision support.
+
+        Args:
+            query: Medical query (e.g., "finger fracture treatment outcomes")
+            limit: Maximum number of insights to return
+
+        Returns:
+            List of global insights
+        """
+        try:
+            insights = self.global_insights.query_insights(
+                query=query,
+                user=self.user,
+                limit=limit
+            )
+            return insights
+        except PermissionError as e:
+            import logging
+            logging.warning(f"Access denied to global insights: {e}")
+            return []
+        except Exception as e:
+            import logging
+            logging.error(f"Error querying global insights: {e}")
+            return []
+
+    def record_result_click(self, result_point_id: str, result_rank: int, result_score: float):
+        """
+        Record that a user clicked/used a specific search result.
+
+        Args:
+            result_point_id: Qdrant point ID of the result
+            result_rank: Position in result list (1-indexed)
+            result_score: Relevance score
+        """
+        if self.feedback_middleware.enabled:
+            self.feedback_middleware.record_result_interaction(
+                result_point_id=result_point_id,
+                result_rank=result_rank,
+                result_score=result_score,
+                interaction_type="click"
+            )
+
+    def record_clinical_outcome(self, patient_id: str, outcome_type: str, confidence_level: int):
+        """
+        Record clinical outcome feedback for the current query.
+
+        Args:
+            patient_id: Patient identifier
+            outcome_type: Type of outcome (helpful, not_helpful, led_to_diagnosis)
+            confidence_level: Confidence rating (1-5)
+        """
+        if self.feedback_middleware.enabled:
+            self.feedback_middleware.record_clinical_outcome(
+                patient_id=patient_id,
+                doctor_id=self.user.id,
+                outcome_type=outcome_type,
+                confidence_level=confidence_level
+            )
 
     def process_request(self, user_input: str):
         """ReAct Loop for Doctor CLI."""
@@ -97,11 +213,13 @@ class DoctorAgent(MediSyncAgent):
 
         intent = "unknown"
         lower_input = user_input.lower()
-        
+
         if any(w in lower_input for w in ["add", "save", "note", "record"]):
              intent = "ingest"
         elif "discover" in lower_input:
              intent = "discovery"
+        elif any(w in lower_input for w in ["global", "population", "cross-clinic", "insights"]):
+             intent = "global_insights"
         elif any(w in lower_input for w in ["search", "find", "query"]):
              intent = "search"
         elif "history" in lower_input or "records" in lower_input:
@@ -161,6 +279,17 @@ class DoctorAgent(MediSyncAgent):
                 # yield ("ANSWER", "I found these similar cases that might suggest a diagnosis or treatment.")
             else:
                 yield ("ANSWER", "No similar medical records found to base a recommendation on.")
-        
+
+        elif intent == "global_insights":
+            yield ("THOUGHT", "Querying anonymized global medical insights...")
+            yield ("ACTION", f"Searching cross-clinic data for: '{user_input}'")
+            # Remove trigger words
+            query = user_input.replace("global", "").replace("insights", "").replace("population", "").strip()
+            insights = self.query_global_insights(query)
+            if insights:
+                yield ("GLOBAL_INSIGHTS", insights)
+            else:
+                yield ("ANSWER", "No global insights found for this query. Try searching for specific conditions or treatments.")
+
         else:
-            yield ("ANSWER", "I can 'add note', 'search', 'discover', 'show history', or 'recommend treatment'.")
+            yield ("ANSWER", "I can 'add note', 'search', 'discover', 'show history', 'recommend treatment', or query 'global insights'.")

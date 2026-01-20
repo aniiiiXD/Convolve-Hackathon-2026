@@ -14,7 +14,7 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from medisync.models.model_registry import get_registry, ModelType, ModelStatus
 
 logger = logging.getLogger(__name__)
-
+ 
 
 class ReRankerModel:
     """Production wrapper for re-ranking model"""
