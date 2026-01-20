@@ -78,6 +78,18 @@ class DoctorAgent(MediSyncAgent):
             clinic_id=self.clinic_id
         )
 
+    def get_clinical_recommendations(self, symptoms_text: str, limit: int = 5):
+        """
+        Finds similar cases to provide clinical decision support.
+        This is effectively a semantic search for similar symptom patterns.
+        """
+        # We reuse search_clinic but conceptually this is for "recommendations"
+        # In a real system, this might query a separate 'medical_knowledge' collection
+        # or use Qdrant's 'recommend' API if we had a vector for the symptoms.
+        
+        # Here we do a focused search on the clinic's data to find precedents.
+        return self.search_clinic(symptoms_text, limit=limit)
+
     def process_request(self, user_input: str):
         """ReAct Loop for Doctor CLI."""
         yield ("THOUGHT", f"Analyzing input: '{user_input}'...")
@@ -92,6 +104,10 @@ class DoctorAgent(MediSyncAgent):
              intent = "discovery"
         elif any(w in lower_input for w in ["search", "find", "query"]):
              intent = "search"
+        elif "history" in lower_input or "records" in lower_input:
+             intent = "history"
+        elif any(w in lower_input for w in ["recommend", "suggest", "advice", "what to do", "treatment"]):
+             intent = "recommend"
 
         if intent == "ingest":
             # Extract Patient ID (Naive Regex)
@@ -117,15 +133,34 @@ class DoctorAgent(MediSyncAgent):
             results = self.discover_cases(target, [context_part], [])
             
             yield ("RESULTS", results)
-            # summary = "\n".join([f"- {p.payload.get('text_content')}" for p in results])
-            # yield ("ANSWER", f"Discovery Results:\n{summary}")
 
         elif intent == "search":
             yield ("ACTION", f"Searching clinic records...")
             results = self.search_clinic(user_input)
             yield ("RESULTS", results)
-            # summary = "\n".join([f"- {p.payload.get('text_content')}" for p in results])
-            # yield ("ANSWER", f"Found:\n{summary}")
+
+        elif intent == "history":
+            # Extract Patient ID
+            pid_match = re.search(r'(P-\d+|patient \w+)', user_input, re.IGNORECASE)
+            if pid_match:
+                patient_id = pid_match.group(0)
+                yield ("ACTION", f"Retrieving history for {patient_id}...")
+                results = self.get_patient_history(patient_id)
+                yield ("RESULTS", results)
+            else:
+                yield ("ANSWER", "Please specify which patient (e.g., 'history of P-101').")
+
+        elif intent == "recommend":
+            yield ("THOUGHT", "Fetching clinical recommendations based on similar past cases...")
+            yield ("ACTION", f"Analyzing similar cases for: '{user_input}'")
+            # Remove trigger words for better search
+            query = user_input.replace("recommend", "").replace("suggest", "").strip()
+            results = self.get_clinical_recommendations(query)
+            if results:
+                yield ("RESULTS", results)
+                # yield ("ANSWER", "I found these similar cases that might suggest a diagnosis or treatment.")
+            else:
+                yield ("ANSWER", "No similar medical records found to base a recommendation on.")
         
         else:
-            yield ("ANSWER", "I can help you 'add a note', 'search', or 'discover' cases.")
+            yield ("ANSWER", "I can 'add note', 'search', 'discover', 'show history', or 'recommend treatment'.")

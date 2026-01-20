@@ -12,6 +12,7 @@ class PatientAgent(MediSyncAgent):
     def __init__(self, user: User):
         super().__init__(user)
         self.embedder = EmbeddingService()
+        self.state = "IDLE"  # State tracking for multi-turn intents
         # Strict Check
         if user.role != "PATIENT":
             raise PermissionError("Only patients can initialize PatientAgent")
@@ -84,23 +85,41 @@ class PatientAgent(MediSyncAgent):
 
     def process_request(self, user_input: str):
         """ReAct Loop for Patient CLI."""
-        yield ("THOUGHT", f"Processing: '{user_input}'...")
+        yield ("THOUGHT", f"Processing: '{user_input}' (State: {self.state})...")
         time.sleep(0.3)
+
+        # 1. Handle Active State
+        if self.state == "AWAITING_LOG_CONTENT":
+            yield ("ACTION", "Logging your response...")
+            self.log_diary(user_input)
+            self.state = "IDLE"
+            yield ("ANSWER", "I've logged that in your personal health diary. Anything else?")
+            return
 
         lower = user_input.lower()
         
-        if any(w in lower for w in ["log", "diary", "hurt", "feel", "symptom"]):
-            yield ("ACTION", "Logging to Health Diary...")
-            self.log_diary(user_input)
-            yield ("ANSWER", "I've logged that in your personal health diary.")
+        # 2. Intent Detection
+        if any(w in lower for w in ["log", "diary", "record", "note"]):
+            # Check if content is already provided (e.g., "log I have a headache")
+            # Heuristic: if input length > 15 and has specific symptoms, assume it's one-shot.
+            # But "log a symptom" is short.
+            
+            is_generic_trigger = user_input.strip().lower() in ["log", "log a symptom", "add diary", "record symptom", "i want to log"]
+            
+            if is_generic_trigger:
+                self.state = "AWAITING_LOG_CONTENT"
+                yield ("ANSWER", "What symptom or feeling would you like to log?")
+            else:
+                # One-shot logging
+                yield ("ACTION", "Logging to Health Diary...")
+                self.log_diary(user_input)
+                yield ("ANSWER", "I've logged that in your personal health diary.")
             
         elif "history" in lower or "past" in lower:
             yield ("ACTION", "Fetching your history...")
             points = self.get_my_history()
             if points:
                 yield ("RESULTS", points)
-                # summary = "\n".join([f"- {p.payload.get('text_content')}" for p in points])
-                # yield ("ANSWER", f"Your recent entries:\n{summary}")
             else:
                 yield ("ANSWER", "Your diary is empty.")
                 
@@ -108,10 +127,7 @@ class PatientAgent(MediSyncAgent):
              yield ("THOUGHT", "Generating insights using Qdrant Recommendation API...")
              results = self.get_health_insights()
              if results:
-                 # In a real app, we would summarize these. For now, list them.
                  yield ("RESULTS", results)
-                 # summary = "\n".join([f"- Similar Case: {p.payload.get('text_content')}" for p in results])
-                 # yield ("ANSWER", f"Based on your symptoms, I found these similar patterns in our database:\n{summary}")
              else:
                  yield ("ANSWER", "No specific insights found yet. Keep logging symptoms!")
                  
