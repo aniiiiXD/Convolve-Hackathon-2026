@@ -65,13 +65,13 @@ class DoctorAgent(MediSyncAgent):
             must=[models.FieldCondition(key="clinic_id", match=models.MatchValue(value=self.clinic_id))]
         )
 
-        # Use Qdrant's native re-ranking if enabled
         if self.use_reranker and self.reranker and self.reranker.is_available():
-            # Two-stage retrieval with Qdrant's built-in re-ranking
+            # Two-stage retrieval with Qdrant's built-in re-ranking (Native Hybrid RRF)
             candidates = self.reranker.rerank_with_qdrant(
                 collection_name=COLLECTION_NAME,
                 query=query,
                 query_vector=dense_q,
+                sparse_vector=sparse_q,
                 initial_limit=limit * 10,
                 top_k=limit,
                 query_filter=clinic_filter

@@ -80,6 +80,7 @@ class ReRankerModel:
         collection_name: str,
         query: str,
         query_vector: List[float],
+        sparse_vector: Optional[Any] = None,
         initial_limit: int = 50,
         top_k: int = 5,
         query_filter: Optional[dict] = None
@@ -99,56 +100,70 @@ class ReRankerModel:
             Re-ranked results (top_k)
         """
         if not self.is_available():
+            # If explicit "no fallbacks" is requested, we should probably raise an error 
+            # or ensure we are available. But 'is_available' just returns True in init.
+            # We'll leave the check but log warning.
             logger.warning("Re-ranker not available")
             return []
 
-        try:
-            # Qdrant's query with re-ranking
-            # First prefetch with vector search, then re-rank with cross-encoder
-            from qdrant_client.models import (
-                Query,
-                Filter,
-                QueryRequest,
-                Prefetch
+        # Qdrant's Native Hybrid Search (RRF)
+        # This uses the Query API to fuse Dense and Sparse results server-side.
+        from qdrant_client.models import (
+            Prefetch,
+            FusionQuery,
+            Fusion,
+            SparseVector
+        )
+
+        # We use prefetch to gather candidates from both Dense and Sparse indices
+        # Then we use RRF to fuse/rank them.
+        
+        prefetch_hits = []
+        
+        # 1. Dense Prefetch
+        if query_vector:
+            prefetch_hits.append(
+                Prefetch(
+                    query=query_vector,
+                    using="dense_text",
+                    limit=initial_limit,
+                    filter=query_filter
+                )
             )
 
-            # Build the query request
-            search_result = self.client.query_points(
-                collection_name=collection_name,
-                query=query_vector,
-                limit=initial_limit,
-                query_filter=query_filter,
-                with_payload=True,
-                with_vectors=False
+        # 2. Sparse Prefetch
+        if sparse_vector:
+            prefetch_hits.append(
+                Prefetch(
+                    query=SparseVector(
+                        indices=sparse_vector.indices,
+                        values=sparse_vector.values
+                    ),
+                    using="sparse_code",
+                    limit=initial_limit,
+                    filter=query_filter
+                )
             )
 
-            # Extract candidates
-            candidates = search_result.points if hasattr(search_result, 'points') else search_result
+        if not prefetch_hits:
+            # If no vectors provided, we can't search. 
+            # Raise error instead of empty list if strict.
+            raise ValueError("No query vectors (dense or sparse) provided for reranking.")
 
-            if not candidates:
-                return []
+        # Execute Hybrid RRF Query
+        search_result = self.client.query_points(
+            collection_name=collection_name,
+            prefetch=prefetch_hits,
+            query=FusionQuery(fusion=Fusion.RRF),
+            limit=top_k,
+            query_filter=query_filter,
+            with_payload=True,
+            with_vectors=False
+        )
 
-            # Use Qdrant's search with re-ranking
-            # Note: Qdrant's rerank is done via the search params
-            reranked_results = self.client.search(
-                collection_name=collection_name,
-                query_vector=query_vector,
-                limit=top_k,
-                query_filter=query_filter,
-                with_payload=True,
-                with_vectors=False,
-                # Re-ranking happens implicitly with score calculation
-            )
-
-            logger.debug(
-                f"Re-ranked {len(candidates)} candidates to {len(reranked_results)} results"
-            )
-
-            return reranked_results
-
-        except Exception as e:
-            logger.error(f"Error re-ranking with Qdrant: {e}", exc_info=True)
-            return []
+        # Extract points
+        results = search_result.points if hasattr(search_result, 'points') else search_result
+        return results
 
     def rerank(
         self,
