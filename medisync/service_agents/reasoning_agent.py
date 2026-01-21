@@ -1,4 +1,4 @@
-import google.generativeai as genai
+from google import genai
 import os
 import logging
 from dotenv import load_dotenv
@@ -11,16 +11,20 @@ class LLMService:
         api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
             logger.warning("GEMINI_API_KEY not found. LLM features will be disabled.")
-            self.model = None
+            self.client = None
         else:
-            genai.configure(api_key=api_key)
-            self.model = genai.GenerativeModel('gemini-1.5-pro')
+            try:
+                self.client = genai.Client(api_key=api_key)
+                self.model_id = 'gemini-1.5-pro'
+            except Exception as e:
+                logger.error(f"Failed to initialize Gemini Client: {e}")
+                self.client = None
 
     def generate_response(self, prompt: str, context: str = "") -> str:
         """
         Generates a response using Gemini 1.5 Pro.
         """
-        if not self.model:
+        if not self.client:
             return "Error: LLM is not configured (Missing GEMINI_API_KEY)."
 
         full_prompt = f"""
@@ -37,7 +41,10 @@ class LLMService:
         """
         
         try:
-            response = self.model.generate_content(full_prompt)
+            response = self.client.models.generate_content(
+                model=self.model_id,
+                contents=full_prompt
+            )
             return response.text
         except Exception as e:
             logger.error(f"Gemini Generation Failed: {e}")
