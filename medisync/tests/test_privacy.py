@@ -5,7 +5,7 @@ Tests K-anonymity, PII removal, and HIPAA compliance features.
 """
 
 import pytest
-from medisync.core.privacy import PrivacyFilter, PrivacyValidator
+from medisync.core_agents.privacy_agent import PrivacyFilter, PrivacyValidator
 
 
 class TestPIIRemoval:

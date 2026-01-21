@@ -1,5 +1,5 @@
 from qdrant_client import QdrantClient, models
-from medisync.core.database import client
+from medisync.core_agents.database_agent import client
 
 COLLECTION_NAME = "clinical_records"
 FEEDBACK_COLLECTION = "feedback_analytics"

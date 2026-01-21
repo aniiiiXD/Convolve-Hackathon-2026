@@ -1,5 +1,5 @@
-from medisync.services.auth import AuthService
-from medisync.agents.reasoning.doctor import DoctorAgent
+from medisync.service_agents.gatekeeper_agent import AuthService
+from medisync.clinical_agents.reasoning.doctor_agent import DoctorAgent
 from rich.table import Table
 from rich.console import Console
 from rich.panel import Panel

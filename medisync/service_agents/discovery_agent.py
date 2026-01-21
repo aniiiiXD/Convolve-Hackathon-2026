@@ -1,7 +1,7 @@
 from qdrant_client import models
-from medisync.core.database import client
-from medisync.services.qdrant_ops import COLLECTION_NAME
-from medisync.services.embedding import EmbeddingService
+from medisync.core_agents.database_agent import client
+from medisync.service_agents.memory_ops_agent import COLLECTION_NAME
+from medisync.service_agents.encoding_agent import EmbeddingService
 from typing import List, Optional
 
 class DiscoveryService:

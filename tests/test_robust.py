@@ -5,10 +5,10 @@ import time
 # Ensure import path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from medisync.services.auth import AuthService
-from medisync.agents.reasoning.doctor import DoctorAgent
-from medisync.agents.reasoning.patient import PatientAgent
-from medisync.core.db_sql import init_db
+from medisync.service_agents.gatekeeper_agent import AuthService
+from medisync.clinical_agents.reasoning.doctor_agent import DoctorAgent
+from medisync.clinical_agents.reasoning.patient_agent import PatientAgent
+from medisync.core_agents.records_agent import init_db
 
 def test_robust_flow():
     print("==========================================")

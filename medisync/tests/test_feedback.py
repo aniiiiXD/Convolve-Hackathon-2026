@@ -8,10 +8,10 @@ import pytest
 import hashlib
 from datetime import datetime, timedelta
 
-from medisync.services.feedback_service import FeedbackService
-from medisync.services.feedback_middleware import FeedbackMiddleware
-from medisync.core.db_sql import init_db, SessionLocal
-from medisync.models.sql_models import SearchQuery, ResultInteraction, ClinicalOutcome
+from medisync.service_agents.learning_agent import FeedbackService
+from medisync.service_agents.learning_middleware_agent import FeedbackMiddleware
+from medisync.core_agents.records_agent import init_db, SessionLocal
+from medisync.model_agents.data_models import SearchQuery, ResultInteraction, ClinicalOutcome
 
 
 @pytest.fixture(scope="module")

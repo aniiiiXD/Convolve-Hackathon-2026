@@ -8,10 +8,10 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Mock Qdrant in case verify_features relies on it global init
 from unittest.mock import MagicMock
-sys.modules['medisync.core.database'] = MagicMock()
-sys.modules['medisync.services.qdrant_ops'] = MagicMock()
+sys.modules['medisync.core_agents.database_agent'] = MagicMock()
+sys.modules['medisync.service_agents.memory_ops_agent'] = MagicMock()
 
-from medisync.services.embedding import EmbeddingService
+from medisync.service_agents.encoding_agent import EmbeddingService
 
 def test_gemini_embedding():
     print("Testing Gemini Embedding Service...")

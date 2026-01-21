@@ -4,9 +4,9 @@ import os
 # Ensure we can import from local directory
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
-from medisync.services.auth import AuthService
-from medisync.agents.reasoning.doctor import DoctorAgent
-from medisync.agents.reasoning.patient import PatientAgent
+from medisync.service_agents.gatekeeper_agent import AuthService
+from medisync.clinical_agents.reasoning.doctor_agent import DoctorAgent
+from medisync.clinical_agents.reasoning.patient_agent import PatientAgent
 import time
 
 def test_fusion():

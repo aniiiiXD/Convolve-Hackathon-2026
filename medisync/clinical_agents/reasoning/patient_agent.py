@@ -1,8 +1,8 @@
-from medisync.agents.adk_config import MediSyncAgent
-from medisync.services.auth import User
-from medisync.services.embedding import EmbeddingService
-from medisync.services.qdrant_ops import COLLECTION_NAME, client
-from medisync.services.discovery import DiscoveryService
+from medisync.clinical_agents.base_clinical_agent import MediSyncAgent
+from medisync.service_agents.gatekeeper_agent import User
+from medisync.service_agents.encoding_agent import EmbeddingService
+from medisync.service_agents.memory_ops_agent import COLLECTION_NAME, client
+from medisync.service_agents.discovery_agent import DiscoveryService
 from qdrant_client import models
 import uuid
 import time

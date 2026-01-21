@@ -34,8 +34,8 @@ from transformers import (
 import numpy as np
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
-from medisync.models.model_registry import ModelRegistry, ModelType, ModelStatus
-from medisync.training.evaluator import ModelEvaluator
+from medisync.model_agents.registry_agent import ModelRegistry, ModelType, ModelStatus
+from medisync.training_agents.evaluation_agent import ModelEvaluator
 
 logger = logging.getLogger(__name__)
 

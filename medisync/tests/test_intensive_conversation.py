@@ -11,14 +11,14 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from medisync.services.auth import AuthService
-from medisync.agents.reasoning.doctor import DoctorAgent
-from medisync.agents.reasoning.patient import PatientAgent
-from medisync.services.feedback_service import FeedbackService
-from medisync.services.analytics_service import AnalyticsService
-from medisync.services.global_insights import GlobalInsightsService
-from medisync.core.privacy import PrivacyFilter, PrivacyValidator
-from medisync.models.model_registry import get_registry, ModelType
+from medisync.service_agents.gatekeeper_agent import AuthService
+from medisync.clinical_agents.reasoning.doctor_agent import DoctorAgent
+from medisync.clinical_agents.reasoning.patient_agent import PatientAgent
+from medisync.service_agents.learning_agent import FeedbackService
+from medisync.service_agents.analytics_agent import AnalyticsService
+from medisync.service_agents.insights_agent import GlobalInsightsService
+from medisync.core_agents.privacy_agent import PrivacyFilter, PrivacyValidator
+from medisync.model_agents.registry_agent import get_registry, ModelType
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table

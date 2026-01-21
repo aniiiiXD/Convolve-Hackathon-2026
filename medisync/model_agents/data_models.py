@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, Integer, DateTime, Float, Text, JSON, ForeignKey
 from sqlalchemy.orm import relationship
-from medisync.core.db_sql import Base
+from medisync.core_agents.records_agent import Base
 import datetime
 import uuid
 

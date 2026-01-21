@@ -12,7 +12,7 @@ from functools import wraps
 from typing import Any, Callable, Optional, List
 from datetime import datetime
 
-from medisync.services.feedback_service import FeedbackService
+from medisync.service_agents.learning_agent import FeedbackService
 
 logger = logging.getLogger(__name__)
 

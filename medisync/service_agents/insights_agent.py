@@ -9,10 +9,10 @@ import logging
 from typing import List, Dict, Any, Optional
 from qdrant_client import models
 
-from medisync.core.database import client
-from medisync.services.qdrant_ops import GLOBAL_INSIGHTS_COLLECTION
-from medisync.services.embedding import EmbeddingService
-from medisync.services.auth import User
+from medisync.core_agents.database_agent import client
+from medisync.service_agents.memory_ops_agent import GLOBAL_INSIGHTS_COLLECTION
+from medisync.service_agents.encoding_agent import EmbeddingService
+from medisync.service_agents.gatekeeper_agent import User
 
 logger = logging.getLogger(__name__)
 
@@ -379,7 +379,7 @@ class GlobalInsightsService:
 def main():
     """CLI entry point for testing"""
     import argparse
-    from medisync.services.auth import User
+    from medisync.service_agents.gatekeeper_agent import User
 
     parser = argparse.ArgumentParser(description="Query global insights")
     parser.add_argument(

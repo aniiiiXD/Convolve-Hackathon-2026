@@ -5,16 +5,16 @@ import os
 # Add project root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from medisync.agents.reasoning.doctor import DoctorAgent
-from medisync.agents.reasoning.patient import PatientAgent
-from medisync.services.auth import User
+from medisync.clinical_agents.reasoning.doctor_agent import DoctorAgent
+from medisync.clinical_agents.reasoning.patient_agent import PatientAgent
+from medisync.service_agents.gatekeeper_agent import User
 from unittest.mock import MagicMock, patch
 
 def test_doctor_history():
     print("Testing Doctor History...")
     user = User(id="doc1", username="Dr. Smith", role="DOCTOR", clinic_id="C1")
     
-    with patch('medisync.agents.reasoning.doctor.client') as mock_client:
+    with patch('medisync.clinical_agents.reasoning.doctor_agent.client') as mock_client:
         # Mock scroll return
         mock_client.scroll.return_value = ([], "next_page")
         
@@ -37,7 +37,7 @@ def test_patient_state():
     print("\nTesting Patient State...")
     user = User(id="pat1", username="Jane Doe", role="PATIENT", clinic_id="C1")
     
-    with patch('medisync.agents.reasoning.patient.client') as mock_client:
+    with patch('medisync.clinical_agents.reasoning.patient_agent.client') as mock_client:
         patient = PatientAgent(user)
         patient.embedder = MagicMock()
         patient.log_diary = MagicMock()
@@ -62,7 +62,7 @@ def test_doctor_recommendations():
     print("\nTesting Doctor Recommendations...")
     user = User(id="doc1", username="Dr. Smith", role="DOCTOR", clinic_id="C1")
     
-    with patch('medisync.agents.reasoning.doctor.client') as mock_client:
+    with patch('medisync.clinical_agents.reasoning.doctor_agent.client') as mock_client:
         doctor = DoctorAgent(user)
         doctor.embedder = MagicMock()
         

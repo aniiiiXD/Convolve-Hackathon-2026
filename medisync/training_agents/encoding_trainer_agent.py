@@ -20,8 +20,8 @@ from sentence_transformers import (
 )
 from torch.utils.data import DataLoader
 
-from medisync.models.model_registry import ModelRegistry, ModelType, ModelStatus
-from medisync.training.evaluator import ModelEvaluator
+from medisync.model_agents.registry_agent import ModelRegistry, ModelType, ModelStatus
+from medisync.training_agents.evaluation_agent import ModelEvaluator
 
 logger = logging.getLogger(__name__)
 

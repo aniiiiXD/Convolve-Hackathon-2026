@@ -1,5 +1,5 @@
 from qdrant_client import QdrantClient
-from medisync.core.config import settings
+from medisync.core_agents.config_agent import settings
 
 # Initialize Qdrant Client (Shared Singleton)
 client = QdrantClient(

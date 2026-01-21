@@ -12,9 +12,9 @@ from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from medisync.services.feedback_service import FeedbackService
-from medisync.core.database import client
-from medisync.services.qdrant_ops import COLLECTION_NAME
+from medisync.service_agents.learning_agent import FeedbackService
+from medisync.core_agents.database_agent import client
+from medisync.service_agents.memory_ops_agent import COLLECTION_NAME
 
 logger = logging.getLogger(__name__)
 

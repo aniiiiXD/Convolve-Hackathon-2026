@@ -35,7 +35,7 @@ class EmbeddingService:
     def _load_finetuned_model(self):
         """Load fine-tuned embedding model from registry"""
         try:
-            from medisync.models.model_registry import get_registry, ModelType, ModelStatus
+            from medisync.model_agents.registry_agent import get_registry, ModelType, ModelStatus
             from sentence_transformers import SentenceTransformer
 
             registry = get_registry()

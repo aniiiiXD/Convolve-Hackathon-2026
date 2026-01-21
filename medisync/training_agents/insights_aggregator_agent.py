@@ -16,11 +16,11 @@ from collections import defaultdict
 
 from qdrant_client import models
 
-from medisync.core.database import client
-from medisync.services.qdrant_ops import COLLECTION_NAME, GLOBAL_INSIGHTS_COLLECTION
-from medisync.services.medical_entity_extractor import MedicalEntityExtractor
-from medisync.services.embedding import EmbeddingService
-from medisync.core.privacy import PrivacyFilter, PrivacyValidator
+from medisync.core_agents.database_agent import client
+from medisync.service_agents.memory_ops_agent import COLLECTION_NAME, GLOBAL_INSIGHTS_COLLECTION
+from medisync.service_agents.extraction_agent import MedicalEntityExtractor
+from medisync.service_agents.encoding_agent import EmbeddingService
+from medisync.core_agents.privacy_agent import PrivacyFilter, PrivacyValidator
 
 logger = logging.getLogger(__name__)
 

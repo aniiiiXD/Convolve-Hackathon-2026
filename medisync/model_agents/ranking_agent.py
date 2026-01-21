@@ -11,7 +11,7 @@ import os
 from qdrant_client import QdrantClient
 from qdrant_client.models import QueryRequest, Prefetch
 
-from medisync.models.model_registry import get_registry, ModelType, ModelStatus
+from medisync.model_agents.registry_agent import get_registry, ModelType, ModelStatus
 
 logger = logging.getLogger(__name__)
 

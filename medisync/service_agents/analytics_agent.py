@@ -16,9 +16,9 @@ from collections import Counter
 from sqlalchemy import func, and_
 from sqlalchemy.orm import Session
 
-from medisync.models.sql_models import SearchQuery, ResultInteraction, ClinicalOutcome
-from medisync.core.db_sql import SessionLocal
-from medisync.models.model_registry import get_registry, ModelType
+from medisync.model_agents.data_models import SearchQuery, ResultInteraction, ClinicalOutcome
+from medisync.core_agents.records_agent import SessionLocal
+from medisync.model_agents.registry_agent import get_registry, ModelType
 
 logger = logging.getLogger(__name__)
 

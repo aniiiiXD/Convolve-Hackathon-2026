@@ -1,11 +1,11 @@
-from medisync.agents.adk_config import MediSyncAgent
-from medisync.services.auth import User
-from medisync.services.embedding import EmbeddingService
-from medisync.services.qdrant_ops import COLLECTION_NAME, client
-from medisync.services.discovery import DiscoveryService
-from medisync.services.feedback_middleware import FeedbackMiddleware
-from medisync.services.global_insights import GlobalInsightsService
-from medisync.models.reranker import get_reranker
+from medisync.clinical_agents.base_clinical_agent import MediSyncAgent
+from medisync.service_agents.gatekeeper_agent import User
+from medisync.service_agents.encoding_agent import EmbeddingService
+from medisync.service_agents.memory_ops_agent import COLLECTION_NAME, client
+from medisync.service_agents.discovery_agent import DiscoveryService
+from medisync.service_agents.learning_middleware_agent import FeedbackMiddleware
+from medisync.service_agents.insights_agent import GlobalInsightsService
+from medisync.model_agents.ranking_agent import get_reranker
 from qdrant_client import models
 import uuid
 import time
@@ -99,7 +99,7 @@ class DoctorAgent(MediSyncAgent):
         # Track query with feedback middleware
         if self.feedback_middleware.enabled:
             try:
-                from medisync.services.feedback_service import FeedbackService
+                from medisync.service_agents.learning_agent import FeedbackService
 
                 # Infer intent
                 intent = self.feedback_middleware._infer_intent(query)

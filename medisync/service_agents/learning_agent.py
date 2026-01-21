@@ -13,14 +13,14 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, func
 
-from medisync.models.sql_models import (
+from medisync.model_agents.data_models import (
     SearchQuery,
     ResultInteraction,
     ClinicalOutcome,
     ModelTrainingBatch,
     User
 )
-from medisync.core.db_sql import SessionLocal
+from medisync.core_agents.records_agent import SessionLocal
 
 logger = logging.getLogger(__name__)
 

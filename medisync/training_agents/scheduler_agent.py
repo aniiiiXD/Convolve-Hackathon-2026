@@ -14,11 +14,11 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional, Dict, Any
 
-from medisync.services.feedback_service import FeedbackService
-from medisync.training.data_processor import TrainingDataProcessor
-from medisync.training.embedding_trainer import EmbeddingTrainer
-from medisync.training.reranker_trainer import RerankerTrainer
-from medisync.models.model_registry import (
+from medisync.service_agents.learning_agent import FeedbackService
+from medisync.training_agents.data_processor_agent import TrainingDataProcessor
+from medisync.training_agents.encoding_trainer_agent import EmbeddingTrainer
+from medisync.training_agents.ranking_trainer_agent import RerankerTrainer
+from medisync.model_agents.registry_agent import (
     get_registry,
     ModelType,
     ModelStatus

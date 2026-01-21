@@ -1,5 +1,5 @@
-from medisync.core.db_sql import get_db, init_db
-from medisync.models.sql_models import User
+from medisync.core_agents.records_agent import get_db, init_db
+from medisync.model_agents.data_models import User
 from sqlalchemy.orm import Session
 from typing import Optional
 

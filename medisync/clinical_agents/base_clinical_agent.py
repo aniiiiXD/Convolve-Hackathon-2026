@@ -1,8 +1,8 @@
 from typing import Any, Dict, List, Optional
 import os
-from medisync.services.auth import User
-from medisync.services.qdrant_ops import initialize_collections
-from medisync.services.llm import LLMService
+from medisync.service_agents.gatekeeper_agent import User
+from medisync.service_agents.memory_ops_agent import initialize_collections
+from medisync.service_agents.reasoning_agent import LLMService
 
 # Ensure collections exist on startup
 initialize_collections()
