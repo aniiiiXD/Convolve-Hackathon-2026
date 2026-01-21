@@ -31,10 +31,8 @@ class ReRankerModel:
             model_version: Model version from registry (optional)
             reranker_model: Hugging Face cross-encoder model name
         """
-        self.client = QdrantClient(
-            host=os.getenv("QDRANT_HOST", "localhost"),
-            port=int(os.getenv("QDRANT_PORT", 6333))
-        )
+        from medisync.core_agents.database_agent import client
+        self.client = client
         self.registry = get_registry()
         self.current_version = model_version
         self.reranker_model = reranker_model
