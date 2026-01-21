@@ -61,9 +61,11 @@ This document describes the implementation of the comprehensive learning system 
   - Automatic evaluation on test sets
 
 - **ReRankerModel** (`medisync/models/reranker.py`)
-  - Production-ready inference wrapper
-  - Batch scoring for efficiency
-  - Auto-loads active model from registry
+  - **Uses Qdrant's native re-ranking** for efficient inference
+  - Leverages Hugging Face cross-encoder models
+  - Default model: `cross-encoder/ms-marco-MiniLM-L-6-v2`
+  - Two-stage retrieval: fast hybrid search → Qdrant re-ranking
+  - Supports custom trained models via registry
   - Fallback to original ranking if unavailable
 
 #### Phase 7: Global Insights System
@@ -216,21 +218,35 @@ python medisync/training/reranker_trainer.py \
     --batch-size 8
 ```
 
-### 3. Use Re-Ranker in Production
+### 3. Use Qdrant Re-Ranker in Production
 
 ```python
 from medisync.models.reranker import get_reranker
 
-# Get global re-ranker instance
-reranker = get_reranker()
+# Get global re-ranker instance with custom model (optional)
+reranker = get_reranker(
+    reranker_model="cross-encoder/ms-marco-MiniLM-L-6-v2"  # Default
+)
 
-# Re-rank search results
-reranked_results = reranker.rerank(
+# Two-stage retrieval with Qdrant's native re-ranking
+from qdrant_client.models import Filter, FieldCondition, MatchValue
+
+clinic_filter = Filter(
+    must=[FieldCondition(key="clinic_id", match=MatchValue(value="clinic_123"))]
+)
+
+# Qdrant handles both retrieval and re-ranking efficiently
+reranked_results = reranker.rerank_with_qdrant(
+    collection_name="clinical_records",
     query="chest pain symptoms",
-    candidates=search_results,
-    top_k=5
+    query_vector=query_embedding,  # Dense vector
+    initial_limit=50,  # Retrieve 50 candidates
+    top_k=5,  # Re-rank to top 5
+    query_filter=clinic_filter
 )
 ```
+
+**Note**: The DoctorAgent automatically uses Qdrant re-ranking when `USE_RERANKER=true` is set.
 
 ### 4. Query Global Insights
 

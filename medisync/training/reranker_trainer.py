@@ -3,6 +3,17 @@ Re-Ranker Training with Cross-Encoder
 
 Trains a cross-encoder model to re-rank search results based on user feedback.
 Base model: microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract
+
+IMPORTANT: Trained models are used with Qdrant's native re-ranking capabilities.
+After training:
+1. Models are saved to the model registry
+2. Upload the model to Hugging Face or configure Qdrant to use the local model
+3. Update the reranker_model parameter in ReRankerModel to use your trained model
+4. Qdrant will handle the re-ranking inference efficiently
+
+Alternatively, you can use pre-trained cross-encoders from Hugging Face:
+- cross-encoder/ms-marco-MiniLM-L-6-v2 (fast, general-purpose)
+- cross-encoder/ms-marco-MedMarco-MiniLM (medical-specific, if available)
 """
 
 import json

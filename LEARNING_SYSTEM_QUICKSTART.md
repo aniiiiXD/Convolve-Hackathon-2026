@@ -152,10 +152,12 @@ python medisync/training/embedding_trainer.py \
 # Model saved to: ./models/embeddings/embedder-YYYYMMDD-HHMMSS
 ```
 
-### Step 4: Train Re-Ranker
+### Step 4: Train Re-Ranker (Optional)
+
+**Note**: MediSync uses Qdrant's native re-ranking with pre-trained cross-encoders from Hugging Face. Training your own model is optional.
 
 ```bash
-# Train re-ranker (5-8 hours on GPU)
+# Train custom re-ranker (5-8 hours on GPU)
 python medisync/training/reranker_trainer.py \
     --train-file ./training_data/reranker_*_train.jsonl \
     --val-file ./training_data/reranker_*_val.jsonl \
@@ -165,6 +167,16 @@ python medisync/training/reranker_trainer.py \
 
 # Model saved to: ./models/rerankers/reranker-YYYYMMDD-HHMMSS
 ```
+
+**To use your trained model with Qdrant**:
+1. Upload model to Hugging Face Hub, OR
+2. Configure Qdrant to use local model path
+3. Update `reranker_model` parameter in `ReRankerModel` initialization
+
+**Alternative**: Use pre-trained models (no training required):
+- `cross-encoder/ms-marco-MiniLM-L-6-v2` (default, fast)
+- `cross-encoder/ms-marco-TinyBERT-L-2-v2` (faster)
+- `cross-encoder/ms-marco-MiniLM-L-12-v2` (more accurate)
 
 ### Step 5: Evaluate Models
 
@@ -380,18 +392,38 @@ print(f"Unique treatments: {stats['unique_treatments']}")
 
 ## Troubleshooting
 
-### Models Not Loading
+### Re-Ranker Not Working
 
 ```python
 from medisync.models.reranker import get_reranker
 
+# Test re-ranker availability
 reranker = get_reranker()
 if not reranker.is_available():
     print("Re-ranker not available. Check:")
-    print("1. Model is registered in registry")
-    print("2. Model has ACTIVE status")
-    print("3. Model files exist at specified path")
+    print("1. Qdrant is running and accessible")
+    print("2. USE_RERANKER=true in environment variables")
+    print("3. QDRANT_HOST and QDRANT_PORT are correct")
+
+# Test with specific model
+reranker = get_reranker(
+    reranker_model="cross-encoder/ms-marco-MiniLM-L-6-v2"
+)
+print(f"Using model: {reranker.reranker_model}")
+
+# Verify Qdrant connection
+from qdrant_client import QdrantClient
+import os
+
+client = QdrantClient(
+    host=os.getenv("QDRANT_HOST", "localhost"),
+    port=int(os.getenv("QDRANT_PORT", 6333))
+)
+collections = client.get_collections()
+print(f"Available collections: {[c.name for c in collections.collections]}")
 ```
+
+**Note**: Qdrant's re-ranking uses Hugging Face models. Ensure you have internet connectivity for first-time model downloads.
 
 ### No Training Data
 

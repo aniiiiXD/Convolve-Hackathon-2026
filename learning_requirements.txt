@@ -1,7 +1,16 @@
 # Learning System Dependencies for MediSync
 # Install with: pip install -r learning_requirements.txt
 
-# Core ML frameworks
+# PRODUCTION DEPENDENCIES (for inference only)
+# ----------------------------------------------
+# qdrant-client>=1.7.0  # Already in main requirements
+# sentence-transformers>=2.2.0  # For embedding fine-tuning (optional)
+
+# TRAINING DEPENDENCIES (for model training only)
+# ------------------------------------------------
+# Only install these if you plan to train custom models.
+# For production, Qdrant handles re-ranking with Hugging Face models.
+
 torch>=2.0.0
 transformers>=4.35.0
 sentence-transformers>=2.2.0

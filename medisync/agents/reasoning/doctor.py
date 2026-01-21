@@ -57,41 +57,44 @@ class DoctorAgent(MediSyncAgent):
         return point_id
 
     def search_clinic(self, query: str, limit: int = 5):
-        """Hybrid Search across the entire clinic with optional re-ranking and feedback tracking."""
+        """Hybrid Search across the entire clinic with Qdrant's native re-ranking and feedback tracking."""
         dense_q = self.embedder.get_dense_embedding(query)
         sparse_q = self.embedder.get_sparse_embedding(query)
 
-        # Stage 1: Fast retrieval (get more candidates if re-ranking is enabled)
-        retrieval_limit = limit * 10 if self.use_reranker and self.reranker and self.reranker.is_available() else limit
-
-        results = client.query_points(
-            collection_name=COLLECTION_NAME,
-            prefetch=[
-                models.Prefetch(
-                    query=dense_q, using="dense_text", limit=retrieval_limit*2,
-                    filter=models.Filter(must=[models.FieldCondition(key="clinic_id", match=models.MatchValue(value=self.clinic_id))])
-                ),
-                models.Prefetch(
-                    query=models.SparseVector(indices=sparse_q.indices, values=sparse_q.values),
-                    using="sparse_code", limit=retrieval_limit*2,
-                    filter=models.Filter(must=[models.FieldCondition(key="clinic_id", match=models.MatchValue(value=self.clinic_id))])
-                ),
-            ],
-            query=models.FusionQuery(fusion=models.Fusion.RRF),
-            limit=retrieval_limit
+        clinic_filter = models.Filter(
+            must=[models.FieldCondition(key="clinic_id", match=models.MatchValue(value=self.clinic_id))]
         )
 
-        candidates = results.points
-
-        # Stage 2: Re-ranking (if enabled)
-        if self.use_reranker and self.reranker and self.reranker.is_available() and len(candidates) > limit:
-            candidates = self.reranker.rerank(
+        # Use Qdrant's native re-ranking if enabled
+        if self.use_reranker and self.reranker and self.reranker.is_available():
+            # Two-stage retrieval with Qdrant's built-in re-ranking
+            candidates = self.reranker.rerank_with_qdrant(
+                collection_name=COLLECTION_NAME,
                 query=query,
-                candidates=candidates,
-                top_k=limit
+                query_vector=dense_q,
+                initial_limit=limit * 10,
+                top_k=limit,
+                query_filter=clinic_filter
             )
         else:
-            candidates = candidates[:limit]
+            # Standard hybrid search with RRF fusion
+            results = client.query_points(
+                collection_name=COLLECTION_NAME,
+                prefetch=[
+                    models.Prefetch(
+                        query=dense_q, using="dense_text", limit=limit*2,
+                        filter=clinic_filter
+                    ),
+                    models.Prefetch(
+                        query=models.SparseVector(indices=sparse_q.indices, values=sparse_q.values),
+                        using="sparse_code", limit=limit*2,
+                        filter=clinic_filter
+                    ),
+                ],
+                query=models.FusionQuery(fusion=models.Fusion.RRF),
+                limit=limit
+            )
+            candidates = results.points
 
         # Track query with feedback middleware
         if self.feedback_middleware.enabled:

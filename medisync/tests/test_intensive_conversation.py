@@ -26,8 +26,9 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 
 console = Console()
 
-# Enable feedback for testing
+# Enable feedback and re-ranking for testing
 os.environ["FEEDBACK_ENABLED"] = "true"
+os.environ["USE_RERANKER"] = "true"
 
 class ConversationTester:
     def __init__(self):
