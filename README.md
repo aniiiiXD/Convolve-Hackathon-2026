@@ -4,6 +4,8 @@
 
 MediSync is a healthcare AI system providing clinical decision support through multi-stage hybrid retrieval, differential diagnosis, and autonomous monitoring - all powered by Qdrant's native features.
 
+---
+
 ## Quick Start
 
 ### 1. Prerequisites
@@ -29,42 +31,58 @@ GEMINI_API_KEY=your-gemini-api-key
 
 ```bash
 # Backend
-pip install qdrant-client python-dotenv rich pydantic-settings google-generativeai
+pip install qdrant-client python-dotenv rich pydantic-settings google-generativeai fastembed
 
 # Frontend
 cd frontend && npm install
 ```
 
-### 4. Verify Installation
-
-Run the comprehensive test suite to verify all 14 components:
+### 4. Run the Demo
 
 ```bash
-python3 test_all.py
+# Interactive clinical demo (recommended for presentations)
+python3 demo/conversation.py
+
+# Quick verification (30 seconds)
+python3 demo/quick_verify.py
+
+# Full test suite
+python3 demo/test_suite.py
 ```
 
-Expected output:
+---
+
+## Demo Features
+
+The interactive demo (`demo/conversation.py`) showcases **three clinical scenarios**:
+
+| Scenario | Patient | Type | Condition |
+|----------|---------|------|-----------|
+| **A** | Tony Stark | Emergency | STEMI (Heart Attack) |
+| **B** | Bruce Banner | Chronic | L4-L5 Disc Herniation |
+| **C** | Peter Parker | Follow-up | Type 1 Diabetes Management |
+
+### Demo Flow (12 Scenes)
+
 ```
-┏━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┓
-┃ Component          ┃ Status ┃
-┡━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━┩
-│ Qdrant Connection  │ ✓ PASS │
-│ Collections        │ ✓ PASS │
-│ Embeddings         │ ✓ PASS │
-│ Authentication     │ ✓ PASS │
-│ Ingestion          │ ✓ PASS │
-│ Hybrid Search      │ ✓ PASS │
-│ Discovery API      │ ✓ PASS │
-│ Privacy            │ ✓ PASS │
-│ Advanced Retrieval │ ✓ PASS │
-│ Insights           │ ✓ PASS │
-│ Vigilance          │ ✓ PASS │
-│ Evidence Graph     │ ✓ PASS │
-│ Diagnosis          │ ✓ PASS │
-│ Reranker           │ ✓ PASS │
-└────────────────────┴────────┘
-Total: 14 passed, 0 failed
+Intro → Login → Alerts → Scenario Selection →
+Patient Intake → Hybrid Search → Discovery API →
+Differential Diagnosis → Evidence Graph (animated) →
+Recommendations → Global Insights → Technical Deep-Dive → Summary
 ```
+
+### Enhanced Evidence Graph
+
+The demo features a **6-step animated evidence graph** showing AI reasoning:
+
+1. **Patient Context** - Demographics and chief complaint
+2. **Symptoms** - Presenting symptoms with visual indicators
+3. **Evidence** - Labs, history, vitals with confidence scores
+4. **AI Reasoning** - Pattern matching and rule-out logic
+5. **Diagnosis Ranking** - Confidence bars for each differential
+6. **Recommendations** - Prioritized clinical actions
+
+See [demo/README.md](demo/README.md) for full demo documentation.
 
 ---
 
@@ -102,7 +120,19 @@ Open http://localhost:3000 for the web interface:
 
 ## Core Features
 
+### Qdrant-Powered Capabilities
+
+| Feature | Description |
+|---------|-------------|
+| **Hybrid Search** | Sparse (BM42) + Dense (Gemini 768d) + RRF Fusion |
+| **Discovery API** | Context-aware search with positive/negative vectors |
+| **Prefetch Chains** | Multi-stage retrieval in single API call |
+| **Named Vectors** | `dense_text`, `sparse_code`, `image_clip` |
+| **Payload Filters** | Clinic and patient-level data isolation |
+| **Binary Quantization** | 30x memory optimization |
+
 ### Multi-Stage Hybrid Retrieval
+
 Single Qdrant API call that:
 1. **Sparse Prefetch** - BM42/SPLADE keyword matching
 2. **Dense Prefetch** - Gemini 768-dim semantic search
@@ -122,6 +152,7 @@ results, metrics = pipeline.search(
 ```
 
 ### Differential Diagnosis
+
 Discovery API powered diagnosis ranking with confidence scores:
 
 ```python
@@ -135,19 +166,8 @@ result = agent.generate_differential(
 )
 ```
 
-### Insights Generator
-Temporal trends, treatment effectiveness, and risk patterns:
-
-```python
-from medisync.service_agents import InsightsGeneratorAgent, InsightType
-from medisync.service_agents.gatekeeper_agent import AuthService
-
-user = AuthService.login("Dr_Strange")
-agent = InsightsGeneratorAgent(user)
-insights = agent.analyze_patient("P-101", [InsightType.TEMPORAL_TREND])
-```
-
 ### Evidence Graphs
+
 Visual reasoning chains from symptoms to diagnosis:
 
 ```python
@@ -165,6 +185,7 @@ print(graph.to_ascii())
 ```
 
 ### Autonomous Vigilance
+
 Background monitoring for critical alerts:
 
 ```python
@@ -187,6 +208,13 @@ medisync/
 ├── interface_agents/      # CLI interfaces
 └── tests/                 # Test suites
 
+demo/
+├── conversation.py        # Main interactive demo (3 scenarios)
+├── quick_verify.py        # 30-second health check
+├── test_suite.py          # Full 16-component test
+├── run_all.py             # Demo runner utility
+└── README.md              # Demo documentation
+
 frontend/
 ├── src/app/              # Next.js pages
 ├── src/components/       # React components
@@ -195,35 +223,54 @@ frontend/
 
 ---
 
+## Privacy & Security
+
+| Feature | Description |
+|---------|-------------|
+| **K-Anonymity** | K≥20 records, min 5 clinics for global insights |
+| **Clinic Isolation** | Doctors only see their clinic's data |
+| **Patient Isolation** | Patients only see their own records |
+| **PII Removal** | Automatic detection of SSN, phone, email patterns |
+| **Role-Based Access** | Doctor and Patient roles with different permissions |
+
+---
+
 ## Testing
 
 ```bash
-# Comprehensive test (14 components)
-python3 test_all.py
+# Demo verification
+python3 demo/quick_verify.py
+
+# Full demo test suite (16 components)
+python3 demo/test_suite.py
 
 # Unit tests with mocks
 python3 -m pytest medisync/tests/ -v
 
-# Integration test
-python3 verify.py
-
-# Frontend
+# Frontend build test
 cd frontend && npm run build
 ```
 
 ---
 
-## Privacy & Security
+## Documentation
 
-- **K-Anonymity (K≥20)**: Global insights require minimum cohort size
-- **Clinic Isolation**: Doctors only see their clinic's data
-- **Patient Isolation**: Patients only see their own records
-- **No PII in Vectors**: Embeddings don't contain identifiable information
+| Document | Description |
+|----------|-------------|
+| [Demo Guide](demo/README.md) | Interactive demo documentation |
+| [Testing Guide](TESTING_GUIDE.md) | Testing procedures |
+| [Presentation](PRESENTATION.md) | Hackathon presentation notes |
 
 ---
 
-## Documentation
+## Key Differentiators
 
-- [Architecture](medisync/docs/architecture.md)
-- [Advanced Features](medisync/docs/advanced_features.md)
-- [Testing Guide](TESTING_GUIDE.md)
+- **All Qdrant Native**: No external re-rankers or ColBERT - pure Qdrant APIs
+- **Hybrid Search**: Combines keyword precision with semantic understanding
+- **Discovery API**: Context-aware clinical reasoning
+- **Privacy-First**: K-anonymity enables cross-clinic insights without exposing PII
+- **Explainable AI**: Evidence graphs show complete reasoning chains
+
+---
+
+**MediSync** - Qdrant Convolve 4.0 Pan-IIT Hackathon
