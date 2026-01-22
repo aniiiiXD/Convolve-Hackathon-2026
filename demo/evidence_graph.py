@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
 """
 Evidence Graph Demo - Visual Reasoning Chains
-Run: python3 demo_evidence_graph.py
+Run: python3 demo/evidence_graph.py
 """
+
+import sys
+import os
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from medisync.clinical_agents.explanation.evidence_graph_agent import EvidenceGraphAgent
 import json

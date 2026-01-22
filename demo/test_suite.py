@@ -3,11 +3,16 @@
 MediSync Complete Demo & Test Suite
 Qdrant Convolve 4.0 Pan-IIT Hackathon
 
-Run: python3 test_all.py
+Run: python3 demo/test_suite.py
 """
 
 import asyncio
 import sys
+import os
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table

@@ -1,4 +1,4 @@
-from medisync.service_agents.gatekeeper_agent import AuthService
+from medisync.service_agents.gatekeeper_agent import AuthService, UserRole
 from medisync.clinical_agents.reasoning.patient_agent import PatientAgent
 from rich.table import Table
 from rich.console import Console
@@ -8,16 +8,16 @@ from rich.markdown import Markdown
 from datetime import datetime
 import time
 
-console = Console()   
+console = Console()
 
 def main():
     console.clear()
     console.print(Panel.fit(
         "[bold magenta]MyHealth Companion[/bold magenta]\n"
-        "[dim]AI-Powered Personal Health Journal[/dim]", 
+        "[dim]AI-Powered Personal Health Journal[/dim]",
         border_style="magenta"
     ))
-    
+
     # 1. Login
     user = None
     while not user:
@@ -25,7 +25,7 @@ def main():
         with console.status("Unlocking secure journal...", spinner="hearts"):
             time.sleep(0.5)
             user = AuthService.login(username)
-            if user and user.role != "PATIENT":
+            if user and user.role != UserRole.PATIENT:
                  console.print("[red]⛔ Access restricted to Patients only.[/red]")
                  user = None
             elif not user:

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 MediSync Interactive Demo - Clinical Conversation Simulation
-Run: python3 demo_conversation.py
+Run: python3 demo/conversation.py
 
 This simulates a realistic clinical workflow showing MediSync's capabilities.
 Perfect for hackathon presentations and live demos.
@@ -10,7 +10,11 @@ Perfect for hackathon presentations and live demos.
 import asyncio
 import time
 import sys
+import os
 import logging
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from datetime import datetime
 from rich.console import Console
 from rich.panel import Panel

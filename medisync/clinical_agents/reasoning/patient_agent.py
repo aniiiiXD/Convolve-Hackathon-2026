@@ -1,5 +1,5 @@
 from medisync.clinical_agents.base_clinical_agent import MediSyncAgent
-from medisync.service_agents.gatekeeper_agent import User
+from medisync.service_agents.gatekeeper_agent import User, UserRole
 from medisync.service_agents.encoding_agent import EmbeddingService
 from medisync.service_agents.memory_ops_agent import COLLECTION_NAME, client
 from medisync.service_agents.discovery_agent import DiscoveryService
@@ -14,7 +14,7 @@ class PatientAgent(MediSyncAgent):
         self.embedder = EmbeddingService()
         self.state = "IDLE"  # State tracking for multi-turn intents
         # Strict Check
-        if user.role != "PATIENT":
+        if user.role != UserRole.PATIENT:
             raise PermissionError("Only patients can initialize PatientAgent")
 
     def log_diary(self, text: str) -> str:

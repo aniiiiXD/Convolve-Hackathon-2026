@@ -1,4 +1,4 @@
-from medisync.service_agents.gatekeeper_agent import AuthService
+from medisync.service_agents.gatekeeper_agent import AuthService, UserRole
 from medisync.clinical_agents.reasoning.doctor_agent import DoctorAgent
 from rich.table import Table
 from rich.console import Console
@@ -14,17 +14,17 @@ def main():
     console.clear()
     console.print(Panel.fit(
         "[bold white]MediSync AI[/bold white] [bold cyan]Clinical Workbench[/bold cyan]\n"
-        "[dim]Secure Search & Discovery System[/dim]", 
+        "[dim]Secure Search & Discovery System[/dim]",
         border_style="cyan", subtitle="v2.0 Native Rerank"
     ))
-    
+
     # 1. Login
     user = None
     while not user:
         username = Prompt.ask("[bold cyan]Login ID[/bold cyan]", default="Dr_Strange")
         with console.status("[cyan]Authenticating...[/cyan]", spinner="dots"):
             user = AuthService.login(username)
-            if user and user.role != "DOCTOR":
+            if user and user.role != UserRole.DOCTOR:
                 console.print("[red]⛔ Access Denied: User is not authorized as a Doctor.[/red]")
                 user = None
             elif not user:
