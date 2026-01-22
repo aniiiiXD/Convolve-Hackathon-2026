@@ -109,11 +109,48 @@ class EmbeddingService:
         Generates SPLADE sparse vector using FastEmbed (Local).
         Kept local as Gemini doesn't output sparse vectors directly commonly.
         """
-        from fastembed import SparseTextEmbedding
-        
-        # Singleton-ish pattern
+        # Singleton-ish pattern with error handling
         if not hasattr(self, 'sparse_model'):
-            self.sparse_model = SparseTextEmbedding(model_name="prithivida/Splade_PP_en_v1")
-            
-        embeddings = list(self.sparse_model.embed([text]))
-        return embeddings[0]
+            self.sparse_model = None
+            self._sparse_model_failed = False
+
+        if self._sparse_model_failed:
+            # Return a simple keyword-based sparse vector as fallback
+            return self._fallback_sparse_embedding(text)
+
+        if self.sparse_model is None:
+            try:
+                from fastembed import SparseTextEmbedding
+                self.sparse_model = SparseTextEmbedding(model_name="Qdrant/bm42-all-minilm-l6-v2-attentions")
+            except Exception as e:
+                logger.warning(f"Failed to load sparse model: {e}. Using fallback.")
+                self._sparse_model_failed = True
+                return self._fallback_sparse_embedding(text)
+
+        try:
+            embeddings = list(self.sparse_model.embed([text]))
+            return embeddings[0]
+        except Exception as e:
+            logger.warning(f"Sparse embedding failed: {e}. Using fallback.")
+            self._sparse_model_failed = True
+            return self._fallback_sparse_embedding(text)
+
+    def _fallback_sparse_embedding(self, text: str):
+        """Simple keyword-based sparse embedding fallback"""
+        from qdrant_client.models import SparseVector
+        from collections import Counter
+        import re
+
+        # Simple tokenization and term frequency
+        words = re.findall(r'\b\w+\b', text.lower())
+        word_counts = Counter(words)
+
+        # Create simple hash-based indices
+        indices = []
+        values = []
+        for word, count in word_counts.items():
+            idx = hash(word) % 30000  # Keep indices bounded
+            indices.append(abs(idx))
+            values.append(float(count))
+
+        return SparseVector(indices=indices, values=values)
