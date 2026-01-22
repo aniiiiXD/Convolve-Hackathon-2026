@@ -8,70 +8,71 @@ Qdrant Convolve 4.0 Pan-IIT Hackathon
 # From project root
 cd /path/to/convovle
 
-# Run quick verification (30 seconds)
+# Run the main demo (recommended for presentations)
+python3 demo/conversation.py
+
+# Quick verification (30 seconds)
 python3 demo/quick_verify.py
 
-# Run full test suite (16 tests)
+# Full test suite (16 tests)
 python3 demo/test_suite.py
-
-# Run interactive conversation demo (for presentations)
-python3 demo/conversation.py
 ```
 
-## Available Demos
+## Demo Files
 
-| Demo | File | Description |
-|------|------|-------------|
-| **Quick Verify** | `quick_verify.py` | Fast 30-second verification |
-| **Test Suite** | `test_suite.py` | Full 16-component test |
-| **Conversation** | `conversation.py` | Interactive clinical scenario |
-| **Evidence Graph** | `evidence_graph.py` | Explainable AI visualization |
-| **Hybrid Search** | `hybrid_search_demo.py` | Sparse + Dense + RRF demo |
-| **Discovery API** | `discovery_demo.py` | Context-aware search |
-| **Global Insights** | `global_insights_demo.py` | K-anonymity & cross-clinic sharing |
+| File | Description |
+|------|-------------|
+| `conversation.py` | **Main Demo** - Interactive clinical scenario with ALL features |
+| `quick_verify.py` | Fast 30-second system verification |
+| `test_suite.py` | Full 16-component test suite |
+| `run_all.py` | Demo runner utility |
+
+## Main Demo Scenes (conversation.py)
+
+The main demo walks through a complete clinical workflow:
+
+1. **Authentication** - Doctor login with role-based access
+2. **Vigilance Alerts** - Proactive patient monitoring
+3. **Patient Intake** - New ER admission scenario
+4. **Hybrid Search** - Sparse + Dense + RRF Fusion
+5. **Discovery API** - Context-aware search with +/- vectors
+6. **Differential Diagnosis** - AI-generated with confidence scores
+7. **Evidence Graph** - Explainable AI visualization
+8. **Clinical Recommendations** - Treatment protocols
+9. **Global Insights** - Cross-clinic K-anonymized data sharing
+10. **Technical Deep-Dive** - Named vectors, code examples
+
+## Features Demonstrated
+
+### Qdrant Features
+- Hybrid Search (Sparse BM42 + Dense Gemini + RRF Fusion)
+- Discovery API (Context-aware search with positive/negative vectors)
+- Prefetch Chains (Multi-stage retrieval pipeline)
+- Named Vectors (dense_text, sparse_code, image_clip)
+- Payload Filters (Clinic + Patient isolation)
+- Binary Quantization (30x memory optimization)
+
+### Clinical AI
+- Differential Diagnosis Generation
+- Evidence Graphs (Explainable AI)
+- Vigilance Monitoring (Proactive alerts)
+- Change Detection (Temporal patient state tracking)
+- Similar Case Retrieval
+
+### Privacy & Security
+- Role-based access control (Doctor/Patient)
+- Clinic-level data isolation
+- K-anonymity (K>=20, min_clinics>=5)
+- PII removal (SSN, phone, email patterns)
+- Cross-clinic anonymized insights
 
 ## Demo Runner
 
-Use the unified runner to execute demos:
-
 ```bash
-# Show menu
-python3 demo/run_all.py
-
-# Run specific demo
-python3 demo/run_all.py hybrid
-python3 demo/run_all.py discovery
-python3 demo/run_all.py conversation
-
-# Run all demos in sequence
-python3 demo/run_all.py all
+python3 demo/run_all.py demo      # Main demo (recommended)
+python3 demo/run_all.py verify    # Quick health check
+python3 demo/run_all.py test      # Full test suite
 ```
-
-## For Hackathon Presentation
-
-Recommended order for live demo:
-
-1. **Quick Verify** - Show system is working
-2. **Conversation** - Interactive clinical scenario (main demo)
-3. **Evidence Graph** - Show explainable AI
-4. **Hybrid Search** - Technical deep-dive
-5. **Global Insights** - Privacy & cross-clinic sharing
-
-## Qdrant Features Demonstrated
-
-- **Hybrid Search**: Sparse (BM42) + Dense (Gemini 768d) + RRF Fusion
-- **Discovery API**: Context-aware search with positive/negative vectors
-- **Prefetch Chains**: Multi-stage retrieval pipeline
-- **Named Vectors**: Separate embedding spaces per use case
-- **Payload Filters**: Clinic and patient isolation
-- **K-Anonymity**: 5-clinic threshold for global insights
-
-## Files Generated
-
-Some demos create output files:
-
-- `evidence_graph.dot` - GraphViz visualization
-- `evidence_graph.json` - Frontend data
 
 ## Troubleshooting
 

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
 MediSync Demo Runner
-Run all demos in sequence or select specific ones.
 Run: python3 demo/run_all.py [demo_name]
 """
 
@@ -12,12 +11,8 @@ import subprocess
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 DEMOS = {
+    "demo": ("conversation.py", "Full Interactive Demo (All Features)"),
     "test": ("test_suite.py", "Full Test Suite (16 tests)"),
-    "conversation": ("conversation.py", "Interactive Clinical Conversation"),
-    "evidence": ("evidence_graph.py", "Evidence Graph Visualization"),
-    "hybrid": ("hybrid_search_demo.py", "Hybrid Search Demo"),
-    "discovery": ("discovery_demo.py", "Discovery API Demo"),
-    "insights": ("global_insights_demo.py", "Global Insights & K-Anonymity"),
     "verify": ("quick_verify.py", "Quick Verification (30 sec)"),
 }
 
@@ -33,9 +28,9 @@ def print_menu():
         print(f"  {key:12} - {description}")
 
     print("\nUsage:")
-    print("  python3 demo/run_all.py <demo_name>")
-    print("  python3 demo/run_all.py all          # Run all demos")
-    print("  python3 demo/run_all.py              # Show this menu")
+    print("  python3 demo/run_all.py demo      # Main demo (recommended)")
+    print("  python3 demo/run_all.py verify    # Quick health check")
+    print("  python3 demo/run_all.py test      # Full test suite")
     print()
 
 
@@ -61,34 +56,6 @@ def run_demo(demo_key: str):
     return result.returncode == 0
 
 
-def run_all():
-    """Run all demos in order"""
-    order = ["verify", "test", "hybrid", "discovery", "insights", "evidence"]
-
-    print("\n" + "=" * 60)
-    print("   RUNNING ALL DEMOS")
-    print("=" * 60)
-
-    results = {}
-    for demo in order:
-        print(f"\n>>> Starting {demo}...")
-        try:
-            success = run_demo(demo)
-            results[demo] = "PASS" if success else "FAIL"
-        except Exception as e:
-            results[demo] = f"ERROR: {e}"
-
-        input("\nPress Enter to continue to next demo...")
-
-    # Summary
-    print("\n" + "=" * 60)
-    print("   DEMO SUMMARY")
-    print("=" * 60)
-    for demo, status in results.items():
-        icon = "[PASS]" if status == "PASS" else "[FAIL]"
-        print(f"  {icon} {demo}: {status}")
-
-
 def main():
     if len(sys.argv) < 2:
         print_menu()
@@ -96,9 +63,7 @@ def main():
 
     arg = sys.argv[1].lower()
 
-    if arg == "all":
-        run_all()
-    elif arg in DEMOS:
+    if arg in DEMOS:
         run_demo(arg)
     elif arg in ["help", "-h", "--help"]:
         print_menu()
