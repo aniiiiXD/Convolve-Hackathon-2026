@@ -1,198 +1,409 @@
-# System Architecture
+# MediSync System Architecture
 
-## 1. Agent Responsibilities
+**Qdrant Convolve 4.0 Pan-IIT Hackathon**
 
-### 1.1 Orchestrator Agent
-**File:** `agents/orchestration/orchestrator_agent.py`
-- **Entry point** for every user query.
-- Decides which agents to execute and in what order.
-- Maintains a query trace for auditing.
-- **Does no medical reasoning.**
+---
 
-### 1.2 Ingestion Agent
-**File:** `agents/ingestion/ingestion_agent.py`
-- Handles PDFs, text notes, and images.
-- Runs OCR and chunking.
-- Generates embeddings via services.
-- Upserts data into Qdrant with metadata.
+## Overview
 
-### 1.3 Patient State Agent (Core Intelligence)
-**File:** `agents/reasoning/patient_state_agent.py`
-- Synthesizes all evidence into a single patient state.
-- Classifies state (stable / deteriorating / improving).
-- Outputs state vectors with evidence pointers.
-- Central object used by downstream agents.
+MediSync is a multi-agent clinical decision support system built entirely on Qdrant's vector database capabilities. The architecture follows a modular agent-based design where each agent has specific clinical responsibilities.
 
-### 1.4 Change Detection Agent (Temporal Reasoning)
-**File:** `agents/reasoning/change_detection_agent.py`
-- Compares patient state vectors across time.
-- Detects new symptoms, worsening trends, or improvements.
-- Produces deltas instead of raw summaries.
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                         FRONTEND (Next.js)                          │
+│   Doctor Dashboard │ Patient Portal │ Diagnosis Tool │ Insights     │
+└─────────────────────────────────────────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                      AUTHENTICATION LAYER                            │
+│                    Gatekeeper Agent (RBAC)                          │
+│              Doctor (Clinic Scope) │ Patient (Self Scope)           │
+└─────────────────────────────────────────────────────────────────────┘
+                                 │
+        ┌────────────────────────┼────────────────────────┐
+        ▼                        ▼                        ▼
+┌───────────────┐      ┌───────────────┐      ┌───────────────┐
+│  CLINICAL     │      │   SERVICE     │      │   CORE        │
+│  AGENTS       │      │   AGENTS      │      │   AGENTS      │
+│  - Doctor     │      │  - Retrieval  │      │  - Database   │
+│  - Patient    │      │  - Diagnosis  │      │  - Config     │
+│  - Vigilance  │      │  - Insights   │      │  - Privacy    │
+│  - Evidence   │      │  - Encoding   │      │  - Registry   │
+└───────────────┘      └───────────────┘      └───────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                       QDRANT CLOUD                                   │
+│  Collections: clinical_records │ feedback_analytics │ global_insights│
+│  Features: Hybrid Search │ RRF Fusion │ Discovery API │ Filters     │
+└─────────────────────────────────────────────────────────────────────┘
+```
 
-### 1.5 Risk & Triage Agent
-**File:** `agents/reasoning/risk_agent.py`
-- Assigns urgency levels (low / medium / high).
-- Flags patients needing review.
-- Suggests conservative next actions.
-- **Never diagnoses.**
+---
 
-### 1.6 Medical Codes Agent
-**File:** `agents/reasoning/medical_codes_agent.py`
-- Performs exact matching of ICD‑10, medications, lab markers.
-- Uses sparse vectors / keyword search.
-- Zero interpretation, zero hallucination.
+## Directory Structure
 
-### 1.7 Imaging Evidence Agent
-**File:** `agents/reasoning/imaging_evidence_agent.py`
-- Performs semantic similarity over medical images.
-- Confirms or contradicts text‑based findings.
-- Supports longitudinal image comparison.
+```
+medisync/
+├── core_agents/                 # Infrastructure
+│   ├── config_agent.py          # Environment & settings
+│   ├── database_agent.py        # Qdrant client connection
+│   └── privacy_agent.py         # K-anonymity enforcement
+│
+├── service_agents/              # Core Services
+│   ├── encoding_agent.py        # Gemini embeddings (dense + sparse)
+│   ├── memory_ops_agent.py      # Collection CRUD operations
+│   ├── discovery_agent.py       # Qdrant Discovery API wrapper
+│   ├── gatekeeper_agent.py      # Authentication & RBAC
+│   ├── advanced_retrieval_agent.py  # Multi-stage hybrid search
+│   ├── differential_diagnosis_agent.py  # Diagnosis generation
+│   ├── insights_generator_agent.py  # Clinical insights
+│   └── learning_agent.py        # Feedback & analytics
+│
+├── clinical_agents/             # Clinical Intelligence
+│   ├── reasoning/
+│   │   ├── doctor_agent.py      # Doctor workflows
+│   │   └── patient_agent.py     # Patient self-service
+│   ├── autonomous/
+│   │   ├── vigilance_agent.py   # Proactive monitoring
+│   │   └── change_detection_agent.py  # State change tracking
+│   └── explanation/
+│       └── evidence_graph_agent.py  # Reasoning visualization
+│
+├── model_agents/                # ML Models
+│   ├── ranking_agent.py         # Re-ranking with RRF
+│   └── registry_agent.py        # Model version management
+│
+├── interface_agents/            # User Interfaces
+│   ├── doctor_cli.py            # Doctor terminal UI
+│   └── patient_cli.py           # Patient terminal UI
+│
+├── tests/                       # Test Suites
+│   └── test_advanced_features.py
+│
+└── docs/                        # Documentation
+    ├── architecture.md          # This file
+    └── advanced_features.md     # Feature documentation
+```
 
-### 1.8 Evidence Curator Agent
-**File:** `agents/validation/evidence_curator_agent.py`
-- Filters noisy or redundant chunks.
-- Prioritizes recent, high‑confidence, multi‑modal evidence.
-- Improves explanation quality and safety.
+---
 
-### 1.9 Validator Agent
-**File:** `agents/validation/validator_agent.py`
-- Cross‑checks outputs from all reasoning agents.
-- Detects contradictions and agreement levels.
-- Produces an agreement / consistency score.
+## Agent Responsibilities
 
-### 1.10 Uncertainty & Safety Agent
-**File:** `agents/validation/uncertainty_agent.py`
-- Identifies low‑confidence conclusions.
-- Forces disclaimers when evidence is weak.
-- Prevents overconfident system responses.
+### Core Agents
 
-### 1.11 Explanation Agent (Doctor‑Facing)
-**File:** `agents/explanation/explanation_agent.py`
-- Converts reasoning into clinical narrative.
-- Cites evidence IDs explicitly.
-- Outputs are fully auditable.
+| Agent | File | Responsibility |
+|-------|------|----------------|
+| **Config** | `core_agents/config_agent.py` | Environment variables, feature flags |
+| **Database** | `core_agents/database_agent.py` | Qdrant Cloud connection |
+| **Privacy** | `core_agents/privacy_agent.py` | K-anonymity enforcement (K≥20) |
 
-### 1.12 Patient Explanation Agent
-**File:** `agents/explanation/patient_explainer_agent.py`
-- Translates clinical state into layman language.
-- Avoids diagnoses and medical jargon.
-- Improves accessibility and trust.
+### Service Agents
 
-## 2. Services
-- **Qdrant Services** (`services/qdrant_services.py`): Hybrid search, discovery, filters.
-- **Qdrant Multimodal** (`services/qdrant_multimodal.py`): Named vectors & multimodal helpers.
-- **Embedding Service** (`services/embedding_service.py`): Dense / sparse / image embeddings.
-- **OCR Service** (`services/ocr_service.py`): PDF & image text extraction.
-- **LLM Service** (`services/llm_service.py`): LLM calls (summarization only).
-- **Auth Context** (`services/auth_context.py`): Doctor ID / clinic ID context.
+| Agent | File | Responsibility |
+|-------|------|----------------|
+| **Encoding** | `service_agents/encoding_agent.py` | Dense (Gemini 768d) + Sparse (BM42) embeddings |
+| **Memory Ops** | `service_agents/memory_ops_agent.py` | Collection initialization, CRUD |
+| **Discovery** | `service_agents/discovery_agent.py` | Context-aware search |
+| **Gatekeeper** | `service_agents/gatekeeper_agent.py` | Authentication, role-based access |
+| **Advanced Retrieval** | `service_agents/advanced_retrieval_agent.py` | 4-stage hybrid search pipeline |
+| **Differential Diagnosis** | `service_agents/differential_diagnosis_agent.py` | Diagnosis generation |
+| **Insights Generator** | `service_agents/insights_generator_agent.py` | Temporal trends, risk patterns |
+| **Learning** | `service_agents/learning_agent.py` | Feedback collection, analytics |
 
-## 3. Feedback Loops (System Intelligence)
+### Clinical Agents
 
-A feedback loop is a **past decision stored in Qdrant influencing a future agent decision**.
+| Agent | File | Responsibility |
+|-------|------|----------------|
+| **Doctor** | `clinical_agents/reasoning/doctor_agent.py` | Search, ingest, diagnose |
+| **Patient** | `clinical_agents/reasoning/patient_agent.py` | View history, log symptoms |
+| **Vigilance** | `clinical_agents/autonomous/vigilance_agent.py` | Critical alerts, monitoring |
+| **Change Detection** | `clinical_agents/autonomous/change_detection_agent.py` | Track patient state changes |
+| **Evidence Graph** | `clinical_agents/explanation/evidence_graph_agent.py` | Explainable reasoning |
 
-### Loop 1: Doctor Behavior → System Adaptation
-**Mechanism:** Doctors ignoring alerts or marking results as useful trains the system preferences.
+---
 
-1. **Event:** Doctor ignores an alert, clicks a result, or marks utility.
-2. **Recording Agent:** `Doctor Preference Agent` (in `orchestration/`)
-3. **Qdrant Storage:** Collection `doctor_memory`
-   ```json
-   {
-     "doctor_id": "D-14",
-     "event": "ignored_alert",
-     "alert_type": "low_risk_edema",
-     "timestamp": "2026-01-18T19:40Z"
-   }
-   ```
-4. **Reading Agent:** `Risk Agent`, `Orchestrator Agent`
-5. **Behavior Change:** Raises thresholds for ignored alerts; deprioritizes similar future cases.
-6. **Code Mapping:**
-   - `/server/routes/feedback.py` → writes event
-   - `doctor_preference_agent.py` → aggregates
-   - `risk_agent.py` → reads preferences before scoring
+## Data Flow
 
-### Loop 2: Temporal Patient Memory → Clinical Confidence
-**Mechanism:** Longitudinal data validation strengthens or weakens confidence in current decisions.
+### Doctor Search Flow
 
-1. **Event:** New data arrives (lab, note, image)
-2. **Recording Agent:** `Patient State Agent`
-3. **Qdrant Storage:** Collection `patient_state` (Append-only)
-   ```json
-   {
-     "patient_id": "P-90210",
-     "state": "deteriorating",
-     "drivers": ["fluid retention"],
-     "timestamp": "2026-01-18"
-   }
-   ```
-4. **Reading Agent:** `Change Detection Agent`
-5. **Behavior Change:**
-   - Trend confirms deterioration → **Confidence ↑**
-   - Oscillating data → **Uncertainty ↑**
-6. **Code Mapping:**
-   - `patient_state_agent.py` → upserts
-   - `change_detection_agent.py` → compares last N states
+```
+Doctor Query: "chest pain diabetic patient"
+                    │
+                    ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    GATEKEEPER AGENT                          │
+│  • Authenticate user                                         │
+│  • Extract clinic_id for filtering                          │
+└─────────────────────────────────────────────────────────────┘
+                    │
+                    ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    ENCODING AGENT                            │
+│  • Generate dense embedding (Gemini 768-dim)                │
+│  • Generate sparse embedding (BM42)                         │
+└─────────────────────────────────────────────────────────────┘
+                    │
+                    ▼
+┌─────────────────────────────────────────────────────────────┐
+│              ADVANCED RETRIEVAL PIPELINE                     │
+│  Stage 1: Sparse prefetch (100 candidates)                  │
+│  Stage 2: Dense prefetch (100 candidates)                   │
+│  Stage 3: RRF fusion (combine & rank)                       │
+│  Stage 4: Discovery refinement (optional)                   │
+└─────────────────────────────────────────────────────────────┘
+                    │
+                    ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   QDRANT CLOUD                               │
+│  Collection: clinical_records                               │
+│  Filter: clinic_id = "Clinic-A"                             │
+│  Named Vectors: dense_text, sparse_code                     │
+└─────────────────────────────────────────────────────────────┘
+                    │
+                    ▼
+            Ranked Results (Top K)
+```
 
-### Loop 3: Evidence Agreement → Trust / Uncertainty
-**Mechanism:** Cross-modal consistency checks determine system self-trust.
+### Patient Privacy Flow
 
-1. **Event:** Agents produce conflicting or agreeing outputs (e.g., text vs. image).
-2. **Recording Agent:** `Validator Agent`
-3. **Qdrant Storage:** Collection `confidence_graph`
-   ```json
-   {
-     "query_id": "Q-81",
-     "agreement_score": 0.42,
-     "conflict": ["text_vs_image"]
-   }
-   ```
-4. **Reading Agent:** `Uncertainty Agent`, `Explanation Agent`
-5. **Behavior Change:** Adds disclaimers to explanations; Risk Agent downgrades urgency.
-6. **Code Mapping:**
-   - `validator_agent.py` → writes agreement
-   - `uncertainty_agent.py` → enforces safety language
+```
+Patient Request: "Show my history"
+                    │
+                    ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    GATEKEEPER AGENT                          │
+│  • Authenticate patient (P-101)                             │
+│  • Set scope to PATIENT role                                │
+└─────────────────────────────────────────────────────────────┘
+                    │
+                    ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    PATIENT AGENT                             │
+│  • Apply mandatory filter: patient_id = "P-101"            │
+│  • Cannot access other patients' data                       │
+└─────────────────────────────────────────────────────────────┘
+                    │
+                    ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   QDRANT CLOUD                               │
+│  Filter: patient_id = "P-101" (enforced)                    │
+│  Returns: Only this patient's records                        │
+└─────────────────────────────────────────────────────────────┘
+                    │
+                    ▼
+            Patient's Own Records Only
+```
 
-### Loop 4: Evidence Quality → Explanation Quality
-**Mechanism:** Curation of evidence leads to more precise and safer explanations.
+---
 
-1. **Event:** Evidence is curated (redundancy removed, high-confidence retained).
-2. **Recording Agent:** `Evidence Curator Agent`
-3. **Qdrant Storage:** Collection `agent_workspace`
-   ```json
-   {
-     "query_id": "Q-81",
-     "curated_evidence_ids": ["v12", "v19", "img_7"]
-   }
-   ```
-4. **Reading Agent:** `Explanation Agent`
-5. **Behavior Change:** Generates shorter, clearer explanations with better citations.
-6. **Code Mapping:**
-   - `evidence_curator_agent.py` → filters
-   - `explanation_agent.py` → consumes only curated IDs
+## Qdrant Collections
 
-### Loop 5: Outcome Awareness (Optional / Simulated)
-**Mechanism:** Future outcomes validate past risk assessments (Simulated for Hackathon).
+### clinical_records
 
-1. **Event:** Follow-up visit shows improvement or lack thereof.
-2. **Recording Agent:** `Change Detection Agent`
-3. **Qdrant Storage:** Collection `decision_outcomes`
-   ```json
-   {
-     "decision_id": "R-22",
-     "outcome": "improved",
-     "time_to_improve": "5 days"
-   }
-   ```
-4. **Reading Agent:** `Risk Agent`
-5. **Behavior Change:** Reinforces similar future decisions; adjusts internal trust scores.
+Primary collection for all medical data.
 
-## 4. Key Design Principle
-> **Agents represent clinical responsibilities, not data modalities.**
+```python
+{
+    "name": "clinical_records",
+    "vectors": {
+        "dense_text": {
+            "size": 768,           # Gemini embedding dimension
+            "distance": "Cosine"
+        },
+        "sparse_code": {
+            "type": "sparse"       # BM42/SPLADE vectors
+        }
+    },
+    "payload_indices": [
+        "patient_id",              # Patient isolation
+        "clinic_id",               # Clinic isolation
+        "record_type",             # note, lab, medication, etc.
+        "timestamp"                # Temporal queries
+    ]
+}
+```
 
-This ensures the system is interpretable, safe, and aligned with real healthcare workflows.
+### feedback_analytics
 
-## 5. Mapping to Hackathon Requirements
-- **Search:** Hybrid multimodal retrieval inside agents.
-- **Memory:** Persistent evolving patient & doctor state in Qdrant.
-- **Recommendations:** Risk‑aware, context‑aware decision support.
-- **Qdrant:** Acts as the shared memory, coordination bus, and audit log for all agents.
+Stores user interactions for learning.
+
+```python
+{
+    "name": "feedback_analytics",
+    "vectors": {
+        "dense_text": {"size": 768, "distance": "Cosine"}
+    },
+    "payload_indices": [
+        "user_id",
+        "query_id",
+        "interaction_type",        # click, ignore, rate
+        "timestamp"
+    ]
+}
+```
+
+### global_medical_insights
+
+Anonymized global patterns (K-anonymity protected).
+
+```python
+{
+    "name": "global_medical_insights",
+    "vectors": {
+        "dense_text": {"size": 768, "distance": "Cosine"}
+    },
+    "payload_indices": [
+        "insight_type",
+        "cohort_size",             # Must be >= 20
+        "condition",
+        "timestamp"
+    ]
+}
+```
+
+---
+
+## Qdrant Features Used
+
+### 1. Hybrid Search (Prefetch + RRF)
+
+```python
+# Single API call combining sparse and dense search
+results = client.query_points(
+    collection_name="clinical_records",
+    prefetch=[
+        Prefetch(query=sparse_vector, using="sparse_code", limit=100),
+        Prefetch(query=dense_vector, using="dense_text", limit=100)
+    ],
+    query=FusionQuery(fusion=Fusion.RRF),
+    limit=10
+)
+```
+
+### 2. Discovery API
+
+```python
+# Context-aware search with positive/negative examples
+results = client.query_points(
+    collection_name="clinical_records",
+    query=DiscoverQuery(
+        discover=DiscoverInput(
+            target=query_embedding,
+            context=[
+                ContextPair(positive=pos_embedding, negative=neg_embedding)
+            ]
+        )
+    ),
+    using="dense_text",
+    limit=10
+)
+```
+
+### 3. Payload Filtering
+
+```python
+# Multi-level isolation
+clinic_filter = Filter(must=[
+    FieldCondition(key="clinic_id", match=MatchValue(value="Clinic-A")),
+    FieldCondition(key="patient_id", match=MatchValue(value="P-101"))
+])
+```
+
+### 4. Named Vectors
+
+```python
+# Separate vector spaces for different embedding types
+vectors = {
+    "dense_text": [0.1, 0.2, ...],    # 768-dim Gemini
+    "sparse_code": SparseVector(       # Variable-length sparse
+        indices=[1, 5, 100, 500],
+        values=[0.8, 0.6, 0.4, 0.2]
+    )
+}
+```
+
+---
+
+## Security Model
+
+### Role-Based Access Control (RBAC)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        ROLES                                 │
+├─────────────────────────────────────────────────────────────┤
+│  DOCTOR                                                      │
+│  • Can search entire clinic's data                          │
+│  • Can ingest new records                                   │
+│  • Can run differential diagnosis                           │
+│  • Cannot see other clinics                                 │
+├─────────────────────────────────────────────────────────────┤
+│  PATIENT                                                     │
+│  • Can only see own records                                 │
+│  • Can log symptoms                                         │
+│  • Cannot see other patients                                │
+│  • Cannot ingest clinical notes                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Privacy Guarantees
+
+| Feature | Implementation |
+|---------|----------------|
+| **Clinic Isolation** | All queries filtered by `clinic_id` |
+| **Patient Isolation** | Patient queries filtered by `patient_id` |
+| **K-Anonymity** | Global insights require cohort size ≥ 20 |
+| **Audit Trail** | All queries logged with user context |
+| **No PII in Embeddings** | Text content stored separately from vectors |
+
+---
+
+## Deployment
+
+### Environment Variables
+
+```env
+# Required
+QDRANT_URL=https://your-cluster.qdrant.io
+QDRANT_API_KEY=your-api-key
+GEMINI_API_KEY=your-gemini-key
+
+# Optional
+ENABLE_VIGILANCE=true
+ENABLE_DISCOVERY_API=true
+K_ANONYMITY_THRESHOLD=20
+```
+
+### Quick Start
+
+```bash
+# 1. Install dependencies
+pip install qdrant-client python-dotenv rich pydantic-settings google-generativeai
+
+# 2. Set up environment
+cp .env.example .env
+# Edit .env with your API keys
+
+# 3. Run tests
+python3 test_all.py
+
+# 4. Start CLI
+python3 -m medisync.cli.doctor_cli
+```
+
+---
+
+## Hackathon Requirements Mapping
+
+| Requirement | Implementation |
+|-------------|----------------|
+| **Qdrant as primary database** | All data stored in Qdrant Cloud |
+| **Hybrid search** | Prefetch chains + RRF fusion |
+| **Discovery API** | Differential diagnosis, context search |
+| **Memory** | Patient history, temporal analysis |
+| **Recommendations** | Insights, alerts, workup suggestions |
+| **Explainability** | Evidence graphs with citations |
+| **Privacy** | K-anonymity, role-based isolation |
+| **No external AI** | Qdrant native features only |

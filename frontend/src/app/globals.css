@@ -1,0 +1,380 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* Core palette - Medical Modernist */
+  --color-midnight: #0a0e14;
+  --color-midnight-50: #1a2130;
+  --color-midnight-100: #151b26;
+  --color-midnight-200: #10151d;
+
+  --color-slate-850: #1e2736;
+  --color-slate-950: #0f1419;
+
+  /* Clinical accent colors */
+  --color-vital-pulse: #00d4aa;
+  --color-vital-warning: #ffb347;
+  --color-vital-critical: #ff6b6b;
+  --color-vital-info: #4ecdc4;
+  --color-vital-calm: #95e1d3;
+
+  /* Medical imaging inspired */
+  --color-scan-ultrasound: #1e90ff;
+  --color-scan-xray: #00ced1;
+  --color-scan-thermal: #ff7f50;
+  --color-scan-mri: #9370db;
+
+  /* Neutral clinical */
+  --color-clinical-white: #f8fafc;
+  --color-clinical-light: #e2e8f0;
+  --color-clinical-muted: #94a3b8;
+  --color-clinical-border: #334155;
+
+  /* Fonts */
+  --font-display: 'Instrument Sans', system-ui, sans-serif;
+  --font-body: 'Instrument Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Animations */
+  --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-pulse-vital: pulseVital 1.5s ease-in-out infinite;
+  --animate-slide-up: slideUp 0.5s ease-out;
+  --animate-fade-in: fadeIn 0.4s ease-out;
+  --animate-ecg: ecg 3s linear infinite;
+
+  /* Shadows */
+  --shadow-glow-teal: 0 0 20px rgba(0, 212, 170, 0.3);
+  --shadow-glow-amber: 0 0 20px rgba(255, 179, 71, 0.3);
+  --shadow-glow-coral: 0 0 20px rgba(255, 107, 107, 0.3);
+  --shadow-inner-glow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+}
+
+@keyframes pulseVital {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+}
+
+@keyframes slideUp {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes ecg {
+  0% { background-position: 200px 0; }
+  100% { background-position: 0 0; }
+}
+
+* {
+  border-color: var(--color-clinical-border);
+}
+
+body {
+  background-color: var(--color-midnight);
+  color: var(--color-clinical-light);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-midnight-50);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-clinical-border);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-clinical-muted);
+}
+
+/* Selection */
+::selection {
+  background: rgba(0, 212, 170, 0.3);
+  color: var(--color-clinical-white);
+}
+
+/* Glass card component */
+.glass-card {
+  background: linear-gradient(to bottom right, rgba(30, 39, 54, 0.8), rgba(26, 33, 48, 0.6));
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-inner-glow);
+}
+
+.glass-card-hover {
+  background: linear-gradient(to bottom right, rgba(30, 39, 54, 0.8), rgba(26, 33, 48, 0.6));
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-inner-glow);
+  transition: all 0.3s;
+}
+
+.glass-card-hover:hover {
+  border-color: rgba(0, 212, 170, 0.3);
+  box-shadow: var(--shadow-glow-teal);
+}
+
+/* ECG background effect */
+.ecg-bg {
+  background-image: url("data:image/svg+xml,%3Csvg width='200' height='40' viewBox='0 0 200 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 20 L40 20 L45 20 L50 10 L55 30 L60 5 L65 35 L70 20 L75 20 L200 20' stroke='%2300d4aa' stroke-width='1' fill='none' opacity='0.08'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  animation: ecg 3s linear infinite;
+}
+
+/* Grid overlay */
+.grid-overlay {
+  background-image:
+    linear-gradient(rgba(30, 39, 54, 0.5) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 39, 54, 0.5) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Severity badges */
+.badge-critical {
+  background: rgba(255, 107, 107, 0.2);
+  color: var(--color-vital-critical);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge-warning {
+  background: rgba(255, 179, 71, 0.2);
+  color: var(--color-vital-warning);
+  border: 1px solid rgba(255, 179, 71, 0.3);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge-stable {
+  background: rgba(0, 212, 170, 0.2);
+  color: var(--color-vital-pulse);
+  border: 1px solid rgba(0, 212, 170, 0.3);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge-info {
+  background: rgba(78, 205, 196, 0.2);
+  color: var(--color-vital-info);
+  border: 1px solid rgba(78, 205, 196, 0.3);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Data panel */
+.data-panel {
+  background: linear-gradient(to bottom right, rgba(30, 39, 54, 0.8), rgba(26, 33, 48, 0.6));
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-inner-glow);
+}
+
+.data-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(0, 212, 170, 0.5), transparent);
+}
+
+/* Buttons */
+.btn-primary {
+  background: linear-gradient(to right, var(--color-vital-pulse), var(--color-vital-info));
+  color: var(--color-midnight);
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-primary:hover {
+  box-shadow: var(--shadow-glow-teal);
+  transform: scale(1.02);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-secondary {
+  border: 1px solid var(--color-clinical-border);
+  background: rgba(26, 33, 48, 0.5);
+  color: var(--color-clinical-light);
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-secondary:hover {
+  border-color: rgba(0, 212, 170, 0.5);
+  background: var(--color-midnight-50);
+}
+
+.btn-ghost {
+  color: var(--color-clinical-muted);
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+}
+
+.btn-ghost:hover {
+  color: var(--color-clinical-light);
+  background: var(--color-midnight-50);
+}
+
+/* Input fields */
+.input-clinical {
+  width: 100%;
+  background: rgba(26, 33, 48, 0.8);
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: var(--color-clinical-light);
+  transition: all 0.2s;
+}
+
+.input-clinical::placeholder {
+  color: rgba(148, 163, 184, 0.5);
+}
+
+.input-clinical:focus {
+  outline: none;
+  border-color: rgba(0, 212, 170, 0.5);
+  box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.2);
+}
+
+/* Alert cards */
+.alert-card {
+  background: linear-gradient(to bottom right, rgba(30, 39, 54, 0.8), rgba(26, 33, 48, 0.6));
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  border-radius: 1rem;
+  padding: 1rem;
+  border-left-width: 4px;
+  animation: slideUp 0.5s ease-out;
+}
+
+.alert-critical {
+  border-left-color: var(--color-vital-critical);
+  background: linear-gradient(to bottom right, rgba(30, 39, 54, 0.8), rgba(255, 107, 107, 0.05));
+}
+
+.alert-warning {
+  border-left-color: var(--color-vital-warning);
+  background: linear-gradient(to bottom right, rgba(30, 39, 54, 0.8), rgba(255, 179, 71, 0.05));
+}
+
+.alert-info {
+  border-left-color: var(--color-vital-info);
+  background: linear-gradient(to bottom right, rgba(30, 39, 54, 0.8), rgba(78, 205, 196, 0.05));
+}
+
+/* Confidence bar */
+.confidence-bar {
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--color-midnight-50);
+  overflow: hidden;
+}
+
+.confidence-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: all 0.5s ease-out;
+}
+
+/* Diagnosis card */
+.diagnosis-card {
+  background: linear-gradient(to bottom right, rgba(30, 39, 54, 0.8), rgba(26, 33, 48, 0.6));
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.diagnosis-card:hover {
+  border-color: rgba(0, 212, 170, 0.3);
+  box-shadow: var(--shadow-glow-teal);
+}
+
+.diagnosis-card.primary {
+  border-color: rgba(0, 212, 170, 0.5);
+  box-shadow: var(--shadow-glow-teal);
+}
+
+/* Metric card */
+.metric-card {
+  background: linear-gradient(to bottom right, rgba(30, 39, 54, 0.8), rgba(26, 33, 48, 0.6));
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-inner-glow);
+}
+
+/* Text utilities */
+.text-gradient {
+  background: linear-gradient(to right, var(--color-vital-pulse), var(--color-vital-info));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-warm {
+  background: linear-gradient(to right, var(--color-vital-warning), var(--color-vital-critical));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

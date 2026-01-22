@@ -24,11 +24,12 @@ class MedicalEntityExtractor:
 
     def __init__(self):
         """Initialize Gemini client"""
-        api_key = os.getenv("GEMINI_API_KEY")
+        api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
         if not api_key:
-            raise ValueError("GEMINI_API_KEY environment variable not set")
+            raise ValueError("GEMINI_API_KEY/GOOGLE_API_KEY environment variable not set")
 
         self.client = genai.Client(api_key=api_key)
+        self.model_id = "gemini-3-flash-preview"
 
     def extract_entities(
         self,
@@ -45,6 +46,9 @@ class MedicalEntityExtractor:
         Returns:
             Dictionary of extracted entities or None
         """
+        system_instruction = """You are a medical entity extraction system.
+Extract structured medical information and return ONLY valid JSON."""
+
         prompt = f"""Extract structured medical information from the following clinical note.
 Return a JSON object with these fields:
 
@@ -65,12 +69,13 @@ Return ONLY valid JSON, no other text."""
         for attempt in range(max_retries):
             try:
                 response = self.client.models.generate_content(
-                    model="gemini-2.0-flash-exp",
-                    contents=prompt,
+                    model=self.model_id,
                     config=types.GenerateContentConfig(
+                        system_instruction=system_instruction,
                         temperature=0.1,
                         response_mime_type="application/json"
-                    )
+                    ),
+                    contents=prompt
                 )
 
                 # Parse JSON response
@@ -145,6 +150,9 @@ Return ONLY valid JSON, no other text."""
         Returns:
             Intent category (diagnosis, treatment, history, prognosis, general)
         """
+        system_instruction = """You are a medical intent classifier.
+Return ONLY the category name, nothing else."""
+
         prompt = f"""Classify the intent of this clinical query into ONE category:
 - diagnosis: Identifying or confirming a medical condition
 - treatment: Planning or recommending treatment
@@ -158,11 +166,12 @@ Return ONLY the category name, nothing else."""
 
         try:
             response = self.client.models.generate_content(
-                model="gemini-2.0-flash-exp",
-                contents=prompt,
+                model=self.model_id,
                 config=types.GenerateContentConfig(
+                    system_instruction=system_instruction,
                     temperature=0.1
-                )
+                ),
+                contents=prompt
             )
 
             intent = response.text.strip().lower()
@@ -189,6 +198,9 @@ Return ONLY the category name, nothing else."""
         Returns:
             List of symptoms
         """
+        system_instruction = """You are a medical symptom extractor.
+Return ONLY a valid JSON array of symptoms."""
+
         prompt = f"""Extract all symptoms mentioned in this clinical note.
 Return a JSON array of symptom strings.
 
@@ -199,12 +211,13 @@ Return ONLY a valid JSON array, no other text."""
 
         try:
             response = self.client.models.generate_content(
-                model="gemini-2.0-flash-exp",
-                contents=prompt,
+                model=self.model_id,
                 config=types.GenerateContentConfig(
+                    system_instruction=system_instruction,
                     temperature=0.1,
                     response_mime_type="application/json"
-                )
+                ),
+                contents=prompt
             )
 
             symptoms = json.loads(response.text)
@@ -236,6 +249,9 @@ Return ONLY a valid JSON array, no other text."""
         Returns:
             Natural language description
         """
+        system_instruction = """You are a medical insights generator.
+Generate concise, professional medical descriptions suitable for healthcare providers."""
+
         prompt = f"""Generate a concise, professional medical insight description (2-3 sentences) from this data:
 
 Condition: {condition}
@@ -251,12 +267,13 @@ Use professional medical language suitable for healthcare providers."""
 
         try:
             response = self.client.models.generate_content(
-                model="gemini-2.0-flash-exp",
-                contents=prompt,
+                model=self.model_id,
                 config=types.GenerateContentConfig(
+                    system_instruction=system_instruction,
                     temperature=0.3,
                     max_output_tokens=200
-                )
+                ),
+                contents=prompt
             )
 
             return response.text.strip()

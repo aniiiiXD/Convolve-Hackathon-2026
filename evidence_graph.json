@@ -1,0 +1,445 @@
+{
+  "graph_id": "DG-20260122061642-5de0c1",
+  "title": "Diagnostic Analysis: crushing substernal chest pain, radiation to left arm",
+  "nodes": [
+    {
+      "id": "patient_1",
+      "type": "patient",
+      "label": "Patient",
+      "description": "65 year old male with history of hypertension, diabetes, and hyperlipidemia",
+      "confidence": 1.0,
+      "metadata": {
+        "context": "65 year old male with history of hypertension, diabetes, and hyperlipidemia"
+      }
+    },
+    {
+      "id": "symptom_2",
+      "type": "symptom",
+      "label": "crushing substernal chest pain",
+      "description": "Presenting symptom: crushing substernal chest pain",
+      "confidence": 0.95,
+      "metadata": {}
+    },
+    {
+      "id": "symptom_3",
+      "type": "symptom",
+      "label": "radiation to left arm",
+      "description": "Presenting symptom: radiation to left arm",
+      "confidence": 0.95,
+      "metadata": {}
+    },
+    {
+      "id": "symptom_4",
+      "type": "symptom",
+      "label": "shortness of breath",
+      "description": "Presenting symptom: shortness of breath",
+      "confidence": 0.95,
+      "metadata": {}
+    },
+    {
+      "id": "symptom_5",
+      "type": "symptom",
+      "label": "diaphoresis",
+      "description": "Presenting symptom: diaphoresis",
+      "confidence": 0.95,
+      "metadata": {}
+    },
+    {
+      "id": "symptom_6",
+      "type": "symptom",
+      "label": "nausea",
+      "description": "Presenting symptom: nausea",
+      "confidence": 0.95,
+      "metadata": {}
+    },
+    {
+      "id": "evidence_7",
+      "type": "evidence",
+      "label": "Evidence 1",
+      "description": "Troponin I: 2.4 ng/mL (elevated, normal <0.04)",
+      "confidence": 0.95,
+      "metadata": {
+        "record_id": "lab-001"
+      }
+    },
+    {
+      "id": "evidence_8",
+      "type": "evidence",
+      "label": "Evidence 2",
+      "description": "12-lead ECG: ST elevation in V1-V4, reciprocal changes in II, III, aVF",
+      "confidence": 0.92,
+      "metadata": {
+        "record_id": "ecg-001"
+      }
+    },
+    {
+      "id": "evidence_9",
+      "type": "evidence",
+      "label": "Evidence 3",
+      "description": "Patient clutching chest, diaphoretic, appears in distress",
+      "confidence": 0.88,
+      "metadata": {
+        "record_id": "note-001"
+      }
+    },
+    {
+      "id": "evidence_10",
+      "type": "evidence",
+      "label": "Evidence 4",
+      "description": "BP 88/56, HR 112, RR 24, SpO2 94% on RA",
+      "confidence": 0.85,
+      "metadata": {
+        "record_id": "vitals-001"
+      }
+    },
+    {
+      "id": "evidence_11",
+      "type": "evidence",
+      "label": "Evidence 5",
+      "description": "Similar episode 2 years ago, underwent PCI to LAD",
+      "confidence": 0.75,
+      "metadata": {
+        "record_id": "history-001"
+      }
+    },
+    {
+      "id": "reasoning_12",
+      "type": "reasoning",
+      "label": "Consider ST-Elevation Myocardial Infarction (STEMI)",
+      "description": "Based on symptom pattern and similar cases",
+      "confidence": 0.846,
+      "metadata": {}
+    },
+    {
+      "id": "diagnosis_13",
+      "type": "diagnosis",
+      "label": "ST-Elevation Myocardial Infarction (STEMI)",
+      "description": "Potential diagnosis: ST-Elevation Myocardial Infarction (STEMI)",
+      "confidence": 0.94,
+      "metadata": {
+        "tests": []
+      }
+    },
+    {
+      "id": "reasoning_14",
+      "type": "reasoning",
+      "label": "Consider Unstable Angina / NSTEMI",
+      "description": "Based on symptom pattern and similar cases",
+      "confidence": 0.54,
+      "metadata": {}
+    },
+    {
+      "id": "diagnosis_15",
+      "type": "diagnosis",
+      "label": "Unstable Angina / NSTEMI",
+      "description": "Potential diagnosis: Unstable Angina / NSTEMI",
+      "confidence": 0.6,
+      "metadata": {
+        "tests": []
+      }
+    },
+    {
+      "id": "reasoning_16",
+      "type": "reasoning",
+      "label": "Consider Aortic Dissection",
+      "description": "Based on symptom pattern and similar cases",
+      "confidence": 0.18000000000000002,
+      "metadata": {}
+    },
+    {
+      "id": "diagnosis_17",
+      "type": "diagnosis",
+      "label": "Aortic Dissection",
+      "description": "Potential diagnosis: Aortic Dissection",
+      "confidence": 0.2,
+      "metadata": {
+        "tests": []
+      }
+    },
+    {
+      "id": "recommendation_18",
+      "type": "recommendation",
+      "label": "Action 1",
+      "description": "ACTIVATE CARDIAC CATH LAB - STEMI ALERT",
+      "confidence": 0.85,
+      "metadata": {}
+    },
+    {
+      "id": "recommendation_19",
+      "type": "recommendation",
+      "label": "Action 2",
+      "description": "Aspirin 325mg chewed immediately",
+      "confidence": 0.85,
+      "metadata": {}
+    },
+    {
+      "id": "recommendation_20",
+      "type": "recommendation",
+      "label": "Action 3",
+      "description": "Heparin 60 units/kg IV bolus",
+      "confidence": 0.85,
+      "metadata": {}
+    }
+  ],
+  "edges": [
+    {
+      "source": "patient_1",
+      "target": "symptom_2",
+      "type": "presents_with",
+      "weight": 1.0,
+      "label": "presents with",
+      "metadata": {}
+    },
+    {
+      "source": "patient_1",
+      "target": "symptom_3",
+      "type": "presents_with",
+      "weight": 1.0,
+      "label": "presents with",
+      "metadata": {}
+    },
+    {
+      "source": "patient_1",
+      "target": "symptom_4",
+      "type": "presents_with",
+      "weight": 1.0,
+      "label": "presents with",
+      "metadata": {}
+    },
+    {
+      "source": "patient_1",
+      "target": "symptom_5",
+      "type": "presents_with",
+      "weight": 1.0,
+      "label": "presents with",
+      "metadata": {}
+    },
+    {
+      "source": "patient_1",
+      "target": "symptom_6",
+      "type": "presents_with",
+      "weight": 1.0,
+      "label": "presents with",
+      "metadata": {}
+    },
+    {
+      "source": "evidence_7",
+      "target": "reasoning_12",
+      "type": "inferred_from",
+      "weight": 0.95,
+      "label": "suggests",
+      "metadata": {}
+    },
+    {
+      "source": "evidence_8",
+      "target": "reasoning_12",
+      "type": "inferred_from",
+      "weight": 0.92,
+      "label": "suggests",
+      "metadata": {}
+    },
+    {
+      "source": "evidence_9",
+      "target": "reasoning_12",
+      "type": "inferred_from",
+      "weight": 0.88,
+      "label": "suggests",
+      "metadata": {}
+    },
+    {
+      "source": "evidence_10",
+      "target": "reasoning_12",
+      "type": "inferred_from",
+      "weight": 0.85,
+      "label": "suggests",
+      "metadata": {}
+    },
+    {
+      "source": "evidence_11",
+      "target": "reasoning_12",
+      "type": "inferred_from",
+      "weight": 0.75,
+      "label": "suggests",
+      "metadata": {}
+    },
+    {
+      "source": "reasoning_12",
+      "target": "diagnosis_13",
+      "type": "leads_to",
+      "weight": 0.94,
+      "label": "94% confidence",
+      "metadata": {}
+    },
+    {
+      "source": "evidence_7",
+      "target": "reasoning_14",
+      "type": "inferred_from",
+      "weight": 0.95,
+      "label": "suggests",
+      "metadata": {}
+    },
+    {
+      "source": "evidence_8",
+      "target": "reasoning_14",
+      "type": "inferred_from",
+      "weight": 0.92,
+      "label": "suggests",
+      "metadata": {}
+    },
+    {
+      "source": "evidence_9",
+      "target": "reasoning_14",
+      "type": "inferred_from",
+      "weight": 0.88,
+      "label": "suggests",
+      "metadata": {}
+    },
+    {
+      "source": "evidence_10",
+      "target": "reasoning_14",
+      "type": "inferred_from",
+      "weight": 0.85,
+      "label": "suggests",
+      "metadata": {}
+    },
+    {
+      "source": "evidence_11",
+      "target": "reasoning_14",
+      "type": "inferred_from",
+      "weight": 0.75,
+      "label": "suggests",
+      "metadata": {}
+    },
+    {
+      "source": "reasoning_14",
+      "target": "diagnosis_15",
+      "type": "leads_to",
+      "weight": 0.6,
+      "label": "60% confidence",
+      "metadata": {}
+    },
+    {
+      "source": "evidence_7",
+      "target": "reasoning_16",
+      "type": "inferred_from",
+      "weight": 0.95,
+      "label": "suggests",
+      "metadata": {}
+    },
+    {
+      "source": "evidence_8",
+      "target": "reasoning_16",
+      "type": "inferred_from",
+      "weight": 0.92,
+      "label": "suggests",
+      "metadata": {}
+    },
+    {
+      "source": "evidence_9",
+      "target": "reasoning_16",
+      "type": "inferred_from",
+      "weight": 0.88,
+      "label": "suggests",
+      "metadata": {}
+    },
+    {
+      "source": "evidence_10",
+      "target": "reasoning_16",
+      "type": "inferred_from",
+      "weight": 0.85,
+      "label": "suggests",
+      "metadata": {}
+    },
+    {
+      "source": "evidence_11",
+      "target": "reasoning_16",
+      "type": "inferred_from",
+      "weight": 0.75,
+      "label": "suggests",
+      "metadata": {}
+    },
+    {
+      "source": "reasoning_16",
+      "target": "diagnosis_17",
+      "type": "leads_to",
+      "weight": 0.2,
+      "label": "20% confidence",
+      "metadata": {}
+    },
+    {
+      "source": "diagnosis_13",
+      "target": "recommendation_18",
+      "type": "recommends",
+      "weight": 0.8,
+      "label": "recommends",
+      "metadata": {}
+    },
+    {
+      "source": "diagnosis_15",
+      "target": "recommendation_18",
+      "type": "recommends",
+      "weight": 0.8,
+      "label": "recommends",
+      "metadata": {}
+    },
+    {
+      "source": "diagnosis_17",
+      "target": "recommendation_18",
+      "type": "recommends",
+      "weight": 0.8,
+      "label": "recommends",
+      "metadata": {}
+    },
+    {
+      "source": "diagnosis_13",
+      "target": "recommendation_19",
+      "type": "recommends",
+      "weight": 0.8,
+      "label": "recommends",
+      "metadata": {}
+    },
+    {
+      "source": "diagnosis_15",
+      "target": "recommendation_19",
+      "type": "recommends",
+      "weight": 0.8,
+      "label": "recommends",
+      "metadata": {}
+    },
+    {
+      "source": "diagnosis_17",
+      "target": "recommendation_19",
+      "type": "recommends",
+      "weight": 0.8,
+      "label": "recommends",
+      "metadata": {}
+    },
+    {
+      "source": "diagnosis_13",
+      "target": "recommendation_20",
+      "type": "recommends",
+      "weight": 0.8,
+      "label": "recommends",
+      "metadata": {}
+    },
+    {
+      "source": "diagnosis_15",
+      "target": "recommendation_20",
+      "type": "recommends",
+      "weight": 0.8,
+      "label": "recommends",
+      "metadata": {}
+    },
+    {
+      "source": "diagnosis_17",
+      "target": "recommendation_20",
+      "type": "recommends",
+      "weight": 0.8,
+      "label": "recommends",
+      "metadata": {}
+    }
+  ],
+  "summary": "Based on symptoms (crushing substernal chest pain, radiation to left arm, shortness of breath), primary consideration is ST-Elevation Myocardial Infarction (STEMI). 7 actions recommended.",
+  "overall_confidence": 0.58,
+  "created_at": "2026-01-22T06:16:42.829454"
+}
